@@ -1,0 +1,30 @@
+<div class="course-card" (click)="onCourseClick()">
+  <div class="course-image">
+    <img [src]="course.thumbnailUrl" [alt]="course.title" class="thumbnail">
+    <div class="progress-badge" *ngIf="showProgress && progressPercent > 0">
+      {{ progressPercent }}% complete
+    </div>
+  </div>
+  
+  <div class="course-content">
+    <h3 class="course-title">{{ course.title }}</h3>
+    
+    <div class="course-rating">
+      <span class="rating">{{ course.rating }}</span>
+      <div class="stars">
+        <span *ngFor="let star of getRatingStars(course.rating)" class="star">{{ star }}</span>
+      </div>
+      <span class="review-count">({{ formatReviewCount(course.reviewCount) }} reviews)</span>
+    </div>
+    
+    <div class="course-meta">
+      <span class="difficulty">{{ course.difficulty }}</span>
+      <span class="duration">{{ course.durationText }}</span>
+    </div>
+    
+    <div class="course-provider">
+      <img [src]="course.provider.logoUrl" [alt]="course.provider.name" class="provider-logo">
+      <span class="provider-name">{{ course.provider.name }}</span>
+    </div>
+  </div>
+</div>

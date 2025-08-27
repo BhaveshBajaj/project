@@ -1,0 +1,109 @@
+<div class="course-details-container">
+  <app-header></app-header>
+
+  <main class="course-details-main">
+    <div class="back-button" (click)="goBack()">
+      ← Back to Dashboard
+    </div>
+
+    <div class="loading-spinner" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading course details...</p>
+    </div>
+
+    <div class="error-message" *ngIf="error">
+      <h3>Error loading course</h3>
+      <p>Unable to load course details. Please try again later.</p>
+      <button (click)="goBack()" class="back-btn">Go Back</button>
+    </div>
+
+    <div class="course-content" *ngIf="!isLoading && !error && course">
+      <!-- Course Header -->
+      <div class="course-header">
+        <div class="course-thumbnail">
+          <img [src]="course.thumbnailUrl" [alt]="course.title" class="thumbnail">
+        </div>
+        
+        <div class="course-info">
+          <h1 class="course-title">{{ course.title }}</h1>
+          <p class="course-subtitle">{{ course.subtitle }}</p>
+          
+          <div class="course-meta">
+            <div class="course-rating">
+              <span class="rating">{{ course.rating }}</span>
+              <div class="stars">
+                <span *ngFor="let star of getRatingStars(course.rating)" class="star">{{ star }}</span>
+              </div>
+              <span class="review-count">({{ formatReviewCount(course.reviewCount) }} reviews)</span>
+            </div>
+            
+            <div class="course-stats">
+              <span class="stat">{{ course.enrollmentCount.toLocaleString() }} students enrolled</span>
+              <span class="stat">{{ course.difficulty }}</span>
+              <span class="stat">{{ course.durationText }}</span>
+            </div>
+          </div>
+          
+          <div class="course-provider">
+            <img [src]="course.provider.logoUrl" [alt]="course.provider.name" class="provider-logo">
+            <span class="provider-name">{{ course.provider.name }}</span>
+          </div>
+          
+          <button (click)="enrollInCourse()" class="enroll-button">
+            Enroll Now
+          </button>
+        </div>
+      </div>
+
+      <!-- Course Content -->
+      <div class="course-sections">
+        <!-- What You'll Learn -->
+        <section class="course-section" *ngIf="course.whatYoullLearn.length > 0">
+          <h2>What you'll learn</h2>
+          <ul class="learning-list">
+            <li *ngFor="let item of course.whatYoullLearn">{{ item }}</li>
+          </ul>
+        </section>
+
+        <!-- Requirements -->
+        <section class="course-section" *ngIf="course.requirements.length > 0">
+          <h2>Requirements</h2>
+          <ul class="requirements-list">
+            <li *ngFor="let requirement of course.requirements">{{ requirement }}</li>
+          </ul>
+        </section>
+
+        <!-- Skills -->
+        <section class="course-section" *ngIf="course.skills.length > 0">
+          <h2>Skills you'll gain</h2>
+          <div class="skills-grid">
+            <span *ngFor="let skill of course.skills" class="skill-tag">{{ skill }}</span>
+          </div>
+        </section>
+
+        <!-- Course Details -->
+        <section class="course-section">
+          <h2>Course Details</h2>
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-label">Published:</span>
+              <span class="detail-value">{{ course.publishedDate | date:'longDate' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Status:</span>
+              <span class="detail-value">{{ course.status }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Difficulty:</span>
+              <span class="detail-value">{{ course.difficulty }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Duration:</span>
+              <span class="detail-value">{{ course.durationText }}</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>

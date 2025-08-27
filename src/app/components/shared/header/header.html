@@ -1,0 +1,52 @@
+<header class="header">
+  <div class="header-content">
+    <div class="header-left">
+      <div class="sign-in-text">1.SIGN_IN</div>
+      <div class="product-name">Product Name</div>
+    </div>
+
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery"
+          (input)="onSearchInput()"
+          (keyup.enter)="onSearchSubmit()"
+          placeholder="Search Courses"
+          class="search-input"
+        >
+        <button (click)="onSearchSubmit()" class="search-button">
+          🔍
+        </button>
+      </div>
+      
+      <div class="search-suggestions" *ngIf="showSearchSuggestions">
+        <div 
+          *ngFor="let suggestion of searchSuggestions" 
+          class="suggestion-item"
+          (click)="onSuggestionClick(suggestion)"
+        >
+          {{ suggestion }}
+        </div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="user-profile" *ngIf="currentUser">
+        <img [src]="currentUser.avatarUrl" [alt]="currentUser.fullName" class="avatar">
+        <span class="user-name">{{ currentUser.fullName }}</span>
+      </div>
+      <button (click)="logout()" class="logout-button">Logout</button>
+    </div>
+  </div>
+
+  <div class="banner">
+    <div class="banner-content">
+      <span class="banner-text">LOREM IPSUM DOLOR</span>
+      <div class="banner-arrows">
+        <span class="arrow">▶</span>
+        <span class="arrow">▶</span>
+      </div>
+    </div>
+  </div>
+</header>

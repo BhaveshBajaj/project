@@ -1,0 +1,302 @@
+<div class="course-details-container" *ngIf="course">
+  <!-- Header -->
+  <header class="course-header">
+    <div class="header-left">
+      <h1 class="logo">SIGN_IN</h1>
+      <nav class="breadcrumb">
+        <a href="#" class="breadcrumb-item">Home</a>
+        <span class="breadcrumb-separator">></span>
+        <span class="breadcrumb-item current">{{ course.title }}</span>
+      </nav>
+    </div>
+    
+    <!-- Middle Search Section -->
+    <div class="header-middle">
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <input 
+            type="text" 
+            class="search-input" 
+            placeholder="Search Courses"
+            [(ngModel)]="searchQuery"
+          />
+          <button class="search-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+          <button class="close-btn">×</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="header-right">
+      <div class="user-profile">
+        <div class="notification-icon">🔔</div>
+        <div class="user-avatar">
+          <img src="https://i.pravatar.cc/40?u=user" alt="User" />
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="course-main">
+    <!-- Course Hero Section -->
+    <section class="course-hero">
+      <div class="hero-content">
+        <div class="course-badge">New</div>
+        <h1 class="course-title">{{ course.title }}</h1>
+        <p class="course-subtitle">{{ course.subtitle }}</p>
+        
+        <div class="course-instructor">
+          <span>Created by: <strong>{{ course.provider.name }}</strong> | AWS Certified Cloud Practitioner Solutions Architect</span>
+        </div>
+        
+        <button class="enroll-btn" (click)="enrollInCourse()">
+          Enroll Now
+        </button>
+        
+        <div class="enrollment-count">{{ course.studentsCount | number }} already enrolled</div>
+      </div>
+      
+      <div class="hero-illustration">
+        <!-- Large circular background illustration -->
+        <div class="hero-circle"></div>
+      </div>
+    </section>
+
+    <!-- Course Info Cards -->
+    <section class="course-info-cards">
+      <div class="info-card">
+        <div class="info-label">Level</div>
+        <div class="info-value">{{ course.difficulty }}</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Rating</div>
+        <div class="info-value">
+          <span class="rating-stars">★</span>
+          <span>{{ course.rating }}</span>
+          <span class="review-count">({{ course.reviewsCount }} reviews)</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Duration</div>
+        <div class="info-value">{{ course.duration }}</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Practice Schedule</div>
+        <div class="info-value">Learn at your own pace</div>
+      </div>
+    </section>
+
+    <!-- Course Tabs -->
+    <section class="course-tabs">
+      <div class="tab-headers">
+        <button 
+          class="tab-header"
+          [class.active]="activeTab === 'overview'"
+          (click)="setActiveTab('overview')"
+        >
+          Overview
+        </button>
+        <button 
+          class="tab-header"
+          [class.active]="activeTab === 'content'"
+          (click)="setActiveTab('content')"
+        >
+          Course Content
+        </button>
+        <button 
+          class="tab-header"
+          [class.active]="activeTab === 'author'"
+          (click)="setActiveTab('author')"
+        >
+          Author Details
+        </button>
+        <button 
+          class="tab-header"
+          [class.active]="activeTab === 'testimonials'"
+          (click)="setActiveTab('testimonials')"
+        >
+          Testimonials
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content">
+        <!-- Overview Tab -->
+        <div class="tab-pane" *ngIf="activeTab === 'overview'">
+          <div class="overview-grid">
+            <!-- Left Column -->
+            <div class="overview-left">
+              <div class="description-section">
+                <h3>Course Description</h3>
+                <p>{{ course.description }}</p>
+              </div>
+
+              <div class="objectives-section">
+                <h3>What You'll Learn</h3>
+                <ul class="objectives-list">
+                  <li *ngFor="let objective of course.objectives">{{ objective }}</li>
+                </ul>
+              </div>
+
+              <div class="requirements-section">
+                <h3>Requirements</h3>
+                <ul class="requirements-list">
+                  <li *ngFor="let requirement of course.requirements">{{ requirement }}</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Right Column - Testimonials Preview -->
+            <div class="overview-right">
+              <div class="testimonials-preview">
+                <div class="testimonial-card" *ngFor="let testimonial of testimonials.slice(0, 2)">
+                  <div class="testimonial-rating">
+                    <span class="rating">{{ testimonial.rating }}</span>
+                    <span class="stars">★★★★★</span>
+                  </div>
+                  <p class="testimonial-text">{{ testimonial.text }}</p>
+                  <div class="testimonial-author">
+                    <div class="author-avatar" [style.background]="testimonial.avatar"></div>
+                    <div class="author-info">
+                      <div class="author-name">{{ testimonial.authorName }}</div>
+                      <div class="author-title">{{ testimonial.authorTitle }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Course Content Tab -->
+        <div class="tab-pane" *ngIf="activeTab === 'content'">
+          <div class="content-header">
+            <h3>Syllabus - {{ course.syllabus?.length || 0 }} sections • {{ getTotalLessons() }} lessons</h3>
+          </div>
+          
+          <div class="syllabus-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width]="'65%'"></div>
+            </div>
+            <span class="progress-text">Course is 65% complete</span>
+          </div>
+
+          <div class="content-sections">
+            <!-- Mock course content since syllabus might be empty -->
+            <div class="content-section" *ngFor="let section of courseSections">
+              <div class="section-header" (click)="toggleSection(section.id)">
+                <h4>{{ section.title }}</h4>
+                <span class="section-duration">{{ section.duration }}</span>
+                <button class="toggle-btn" [class.expanded]="section.expanded">
+                  <span>{{ section.expanded ? '−' : '+' }}</span>
+                </button>
+              </div>
+              
+              <div class="section-content" *ngIf="section.expanded">
+                <div class="lesson-item" *ngFor="let lesson of section.lessons">
+                  <div class="lesson-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                  <div class="lesson-info">
+                    <div class="lesson-title">{{ lesson.title }}</div>
+                    <div class="lesson-duration">{{ lesson.duration }}</div>
+                  </div>
+                  <div class="lesson-status" *ngIf="lesson.completed">✓</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Related Courses -->
+          <div class="related-courses">
+            <h3>Related Courses</h3>
+            <div class="related-grid">
+              <div class="related-card" *ngFor="let related of relatedCourses">
+                <div class="related-image">
+                  <img [src]="related.image" [alt]="related.title" />
+                </div>
+                <div class="related-info">
+                  <h4>{{ related.title }}</h4>
+                  <div class="related-meta">
+                    <span class="rating">★ {{ related.rating }}</span>
+                    <span class="students">({{ related.students }} reviews)</span>
+                  </div>
+                  <div class="related-instructor">{{ related.instructor }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Author Details Tab -->
+        <div class="tab-pane" *ngIf="activeTab === 'author'">
+          <div class="author-details">
+            <h3>Author</h3>
+            <div class="author-info-card">
+              <div class="author-avatar-large">
+                <img src="https://i.pravatar.cc/100?u=author" alt="Author" />
+              </div>
+              <div class="author-details-info">
+                <h4>{{ course.provider.name }} | AWS Certified Cloud Practitioner Solutions Architect</h4>
+                <p class="author-bio">
+                  Stephane is a solutions architect, consultant and software developer that has a particular interest 
+                  in all things related to Cloud and Big Data. He's also a many-times best selling instructor on Udemy 
+                  for his courses in AWS and Apache Kafka.
+                </p>
+                <p class="author-description">
+                  Stephane has appeared as an AWS Certified Solutions Architect Professional & DevOps Professional 
+                  and is in the process of obtaining more certifications. He has also authored advanced-level courses 
+                  related to Cloud, AWS, DevOps, Apache Kafka, and Python, and was previously working as a Senior DevOps Engineer.
+                </p>
+                <p class="author-experience">
+                  Prior to joining your Should you worry about learning vs understanding? Follow me on Udemy and say 
+                  hi! I am a learner, a sharer.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testimonials Tab -->
+        <div class="tab-pane" *ngIf="activeTab === 'testimonials'">
+          <div class="testimonials-grid">
+            <div class="testimonial-card full" *ngFor="let testimonial of testimonials">
+              <div class="testimonial-rating">
+                <span class="rating">{{ testimonial.rating }}</span>
+                <span class="stars">★★★★★</span>
+              </div>
+              <p class="testimonial-text">{{ testimonial.text }}</p>
+              <div class="testimonial-author">
+                <div class="author-avatar" [style.background]="testimonial.avatar"></div>
+                <div class="author-info">
+                  <div class="author-name">{{ testimonial.authorName }}</div>
+                  <div class="author-title">{{ testimonial.authorTitle }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Loading State -->
+<div class="loading-container" *ngIf="isLoading">
+  <div class="loading-spinner"></div>
+  <p>Loading course details...</p>
+</div>
+
+<!-- Error State -->
+<div class="error-container" *ngIf="error">
+  <h2>Course Not Found</h2>
+  <p>The course you're looking for doesn't exist or has been removed.</p>
+  <button (click)="goBack()" class="back-btn">Go Back</button>
+</div>

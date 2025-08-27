@@ -1,0 +1,219 @@
+<div class="dashboard-container">
+  <!-- Header Navigation -->
+  <header class="dashboard-header">
+    <div class="header-left">
+      <h1 class="logo">SIGN_IN</h1>
+      <nav class="main-nav">
+        <a href="#" class="nav-item active">Product Name</a>
+        <a href="#" class="nav-item">Search Courses</a>
+      </nav>
+    </div>
+    
+    <!-- Middle Search Section -->
+    <div class="header-middle">
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <input 
+            type="text" 
+            class="search-input" 
+            placeholder="Search for courses, topics, or skills..."
+            [(ngModel)]="searchQuery"
+            (input)="onSearchInput()"
+            (keyup.enter)="performSearch()"
+          />
+          <button class="search-btn" (click)="performSearch()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Search Suggestions Dropdown -->
+        <div class="search-suggestions" *ngIf="showSearchSuggestions && searchSuggestions.length > 0">
+          <div 
+            class="search-suggestion-item" 
+            *ngFor="let suggestion of searchSuggestions"
+            (click)="selectSuggestion(suggestion)"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            {{ suggestion }}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="header-right">
+      <div class="user-profile">
+        <div class="notification-icon">🔔</div>
+        <div class="user-avatar">
+          <img [src]="currentUser?.avatarUrl" [alt]="currentUser?.fullName" />
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ currentUser?.fullName }}</span>
+          <span class="user-role">{{ currentUser?.role }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="hero-text">
+          <h1>LOREM IPSUM DOLOR</h1>
+          <p>Sit amet consectetur</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">{{ userStats.totalCourses }}</div>
+          <div class="stat-label">My Goals</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ userStats.completedCourses }}</div>
+          <div class="stat-label">Enrolled Courses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ userStats.certificates }}</div>
+          <div class="stat-label">Certificates Earned</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ userStats.totalHours }}</div>
+          <div class="stat-label">My notes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ userStats.inProgressCourses }}</div>
+          <div class="stat-label">Downloads</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+      <!-- Left Column -->
+      <div class="left-column">
+        <!-- Last Viewed Courses -->
+        <section class="section">
+          <div class="section-header">
+            <h2>Last Viewed Courses</h2>
+            <a href="#" class="view-all">View All</a>
+          </div>
+          <div class="courses-grid">
+            <app-course-card 
+              *ngFor="let course of lastViewedCourses" 
+              [course]="course"
+            ></app-course-card>
+          </div>
+        </section>
+
+        <!-- Newly Launched -->
+        <section class="section">
+          <div class="section-header">
+            <h2>Newly Launched</h2>
+            <a href="#" class="view-all">View All</a>
+          </div>
+          <div class="courses-grid">
+            <app-course-card 
+              *ngFor="let course of newlyLaunchedCourses" 
+              [course]="course"
+            ></app-course-card>
+          </div>
+        </section>
+
+        <!-- Blogs Section -->
+        <section class="section">
+          <div class="section-header">
+            <h2>Blogs</h2>
+            <a href="#" class="view-all">View All</a>
+          </div>
+          <div class="blogs-grid">
+            <div class="blog-card" *ngFor="let blog of blogs">
+              <div class="blog-image">
+                <img [src]="blog.imageUrl" [alt]="blog.title" />
+              </div>
+              <div class="blog-info">
+                <h3>{{ blog.title }}</h3>
+                <div class="blog-meta">
+                  <span class="blog-author">{{ blog.author }}</span>
+                  <span class="blog-time">{{ blog.readTime }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right Column -->
+      <div class="right-column">
+        <!-- Last Viewed Courses (Mobile) -->
+        <section class="section mobile-section">
+          <div class="section-header">
+            <h2>Last Viewed Courses</h2>
+          </div>
+          <div class="mobile-course-list">
+            <div class="mobile-course-card" *ngFor="let course of lastViewedCourses.slice(0, 3)">
+              <div class="mobile-course-image">
+                <img [src]="course.thumbnailUrl" [alt]="course.title" />
+              </div>
+              <div class="mobile-course-info">
+                <h4>{{ course.title }}</h4>
+                <div class="mobile-course-meta">
+                  <span class="rating">★ {{ course.rating }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Newly Launched (Mobile) -->
+        <section class="section mobile-section">
+          <div class="section-header">
+            <h2>Newly Launched</h2>
+          </div>
+          <div class="mobile-course-list">
+            <div class="mobile-course-card" *ngFor="let course of newlyLaunchedCourses.slice(0, 2)">
+              <div class="mobile-course-image">
+                <img [src]="course.thumbnailUrl" [alt]="course.title" />
+              </div>
+              <div class="mobile-course-info">
+                <h4>{{ course.title }}</h4>
+                <div class="mobile-course-meta">
+                  <span class="rating">★ {{ course.rating }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Notifications -->
+        <section class="section">
+          <div class="section-header">
+            <h2>Notifications</h2>
+          </div>
+          <div class="notifications-list">
+            <div class="notification-item" *ngFor="let notification of notifications.slice(0, 4)">
+              <div class="notification-icon">
+                <div class="notification-dot" [class.promotional]="notification.isPromotional"></div>
+              </div>
+              <div class="notification-content">
+                <h4>{{ notification.title }}</h4>
+                <p>{{ notification.description }}</p>
+                <span class="notification-time">{{ notification.time }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,126 @@
+<div class="search-container">
+  <app-header></app-header>
+
+  <main class="search-main">
+    <div class="search-layout">
+      <!-- Filters Sidebar -->
+      <aside class="filters-sidebar">
+        <div class="filters-header">
+          <h3>Filters</h3>
+          <button (click)="clearFilters()" class="clear-filters-btn">Clear All</button>
+        </div>
+
+        <!-- Pay Filter -->
+        <div class="filter-section">
+          <h4>Pay</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="checkbox" [(ngModel)]="filters.isPaid" (change)="onFilterChange()">
+              <span>Free</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" [(ngModel)]="filters.isPaid" (change)="onFilterChange()">
+              <span>Paid</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Rating Filter -->
+        <div class="filter-section">
+          <h4>Rating</h4>
+          <div class="filter-options">
+            <label 
+              *ngFor="let rating of ratingOptions" 
+              class="filter-option"
+            >
+              <input 
+                type="radio" 
+                name="rating" 
+                [value]="rating" 
+                [(ngModel)]="filters.rating" 
+                (change)="onFilterChange()"
+              >
+              <span>{{ rating }} stars</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Publisher Filter -->
+        <div class="filter-section">
+          <h4>Publisher</h4>
+          <div class="filter-options">
+            <label 
+              *ngFor="let provider of providerOptions" 
+              class="filter-option"
+            >
+              <input 
+                type="radio" 
+                name="provider" 
+                [value]="provider" 
+                [(ngModel)]="filters.provider" 
+                (change)="onFilterChange()"
+              >
+              <span>{{ provider }}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Course Level Filter -->
+        <div class="filter-section">
+          <h4>Course Level</h4>
+          <div class="filter-options">
+            <label 
+              *ngFor="let difficulty of difficultyOptions" 
+              class="filter-option"
+            >
+              <input 
+                type="radio" 
+                name="difficulty" 
+                [value]="difficulty" 
+                [(ngModel)]="filters.difficulty" 
+                (change)="onFilterChange()"
+              >
+              <span>{{ difficulty }}</span>
+            </label>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Search Results -->
+      <section class="search-results">
+        <div class="results-header">
+          <h2>Search Results</h2>
+          <p>{{ getFilteredCount() }} courses found</p>
+        </div>
+
+        <div class="search-input-section">
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="onSearch()"
+            placeholder="Search courses..."
+            class="search-input"
+          >
+          <button (click)="onSearch()" class="search-btn">Search</button>
+        </div>
+
+        <div class="loading-spinner" *ngIf="isLoading">
+          <div class="spinner"></div>
+          <p>Loading courses...</p>
+        </div>
+
+        <div class="courses-grid" *ngIf="!isLoading && filteredCourses.length > 0">
+          <app-course-card 
+            *ngFor="let course of filteredCourses" 
+            [course]="course"
+          ></app-course-card>
+        </div>
+
+        <div class="no-results" *ngIf="!isLoading && filteredCourses.length === 0">
+          <h3>No courses found</h3>
+          <p>Try adjusting your search criteria or filters.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>

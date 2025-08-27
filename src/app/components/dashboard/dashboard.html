@@ -1,0 +1,87 @@
+<div class="dashboard-container">
+  <app-header></app-header>
+
+  <main class="dashboard-main">
+    <!-- User Stats Section -->
+    <section class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">{{ userStats.goals }}</div>
+          <div class="stat-label">My Goals</div>
+          <button class="view-all-btn" (click)="onViewAll('goals')">View All</button>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-number">{{ userStats.enrolledCourses }}</div>
+          <div class="stat-label">Enrolled Courses</div>
+          <button class="view-all-btn" (click)="onViewAll('courses')">View All</button>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-number">{{ userStats.certificatesEarned }}</div>
+          <div class="stat-label">Certificates Earned</div>
+          <button class="download-btn" (click)="onDownloadCertificates()">Download</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Last Viewed Courses Section -->
+    <section class="courses-section">
+      <h2 class="section-title">Last Viewed Courses</h2>
+      <div class="courses-grid">
+        <app-course-card 
+          *ngFor="let course of lastViewedCourses" 
+          [course]="course"
+          [showProgress]="true"
+          [progressPercent]="90"
+        ></app-course-card>
+      </div>
+    </section>
+
+    <!-- Newly Launched Section -->
+    <section class="courses-section">
+      <h2 class="section-title">Newly Launched</h2>
+      <div class="courses-grid">
+        <app-course-card 
+          *ngFor="let course of newlyLaunchedCourses" 
+          [course]="course"
+        ></app-course-card>
+      </div>
+    </section>
+
+    <!-- Blogs Section -->
+    <section class="blogs-section">
+      <h2 class="section-title">Blogs</h2>
+      <div class="blogs-grid">
+        <app-blog-card 
+          *ngFor="let blog of blogs" 
+          [blog]="blog"
+        ></app-blog-card>
+      </div>
+    </section>
+
+    <!-- Notifications Section -->
+    <section class="notifications-section">
+      <h3 class="notifications-title">Notifications</h3>
+      <div class="notifications-list">
+        <div 
+          *ngFor="let notification of notifications" 
+          class="notification-item"
+          [class.promotional]="notification.isPromotional"
+        >
+          <div class="notification-content">
+            <h4 class="notification-title">{{ notification.title }}</h4>
+            <p class="notification-description">{{ notification.description }}</p>
+            <span class="notification-time">{{ notification.time }}</span>
+          </div>
+          <button 
+            *ngIf="notification.isPromotional" 
+            class="promotional-btn"
+          >
+            The new 'Data Science' is waiting for you. Start your new skill of 'Machine Learning'.
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

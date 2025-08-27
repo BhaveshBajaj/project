@@ -1,0 +1,118 @@
+<div class="login-container">
+  <!-- Left Section - Illustration -->
+  <div class="illustration-section">
+    <div class="illustration-content">
+      <div class="sign-in-text">1.SIGN IN</div>
+      
+      <!-- Main Monitor -->
+      <div class="monitor">
+        <div class="monitor-screen">
+          <div class="video-player">
+            <div class="play-button">▶</div>
+            <div class="progress-bar">
+              <div class="progress-fill"></div>
+            </div>
+            <div class="volume-icon">🔊</div>
+          </div>
+          <div class="playlist">
+            <div class="playlist-item blue"></div>
+            <div class="playlist-item red"></div>
+            <div class="playlist-item blue"></div>
+            <div class="playlist-item red"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Left Figure -->
+      <div class="figure left-figure">
+        <div class="books">
+          <div class="book red"></div>
+          <div class="book orange"></div>
+          <div class="book blue"></div>
+        </div>
+        <div class="person suit-person"></div>
+        <div class="laptop"></div>
+      </div>
+
+      <!-- Right Figure -->
+      <div class="figure right-figure">
+        <div class="person yellow-person"></div>
+        <div class="desk">
+          <div class="laptop"></div>
+          <div class="cup"></div>
+          <div class="book"></div>
+        </div>
+        <div class="chair"></div>
+      </div>
+
+      <!-- Floating Icons -->
+      <div class="icon gear-icon">⚙️</div>
+      <div class="icon speech-bubble-1">💬</div>
+      <div class="icon speech-bubble-2">💬</div>
+      <div class="icon graduation-cap">🎓</div>
+      <div class="icon lightbulb">💡</div>
+      <div class="icon wifi">📶</div>
+    </div>
+  </div>
+
+  <!-- Right Section - Login Form -->
+  <div class="form-section">
+    <div class="form-container">
+      <h1 class="product-name">Product Name</h1>
+      <h2 class="welcome-text">Welcome!</h2>
+      <p class="signin-hint">Sign in to your Learning account</p>
+
+      <form (ngSubmit)="onSubmit()" class="login-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            [(ngModel)]="loginData.email"
+            required
+            class="form-input"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            [(ngModel)]="loginData.password"
+            required
+            class="form-input"
+          >
+        </div>
+
+        <div class="form-options">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="loginData.rememberMe"
+              name="rememberMe"
+            >
+            <span class="checkmark"></span>
+            Remember Me
+          </label>
+          <a href="#" class="forgot-password">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="signin-button" [disabled]="isLoading">
+          {{ isLoading ? 'Signing In...' : 'SIGN IN' }}
+        </button>
+
+        <div class="error-message" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </div>
+      </form>
+
+      <div class="signup-link">
+        <span>Don't have account yet?</span>
+        <a (click)="goToSignup()" class="register-link">Register now</a>
+      </div>
+    </div>
+  </div>
+</div>

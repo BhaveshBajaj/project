@@ -1,0 +1,47 @@
+<div class="course-card" (click)="onCourseClick()">
+  <div class="course-image">
+    <img [src]="course.thumbnailUrl" [alt]="course.title" />
+    <div class="course-rating">
+      <span class="rating-stars">★</span>
+      <span class="rating-value">{{ course.rating }}</span>
+    </div>
+    <div class="course-badge" *ngIf="course.isNewlyLaunched">New</div>
+    <div class="course-badge bestseller" *ngIf="course.isBestseller">Bestseller</div>
+  </div>
+  
+  <div class="course-info">
+    <h3 class="course-title">{{ course.title }}</h3>
+    <p class="course-subtitle">{{ course.subtitle }}</p>
+    
+    <div class="course-meta">
+      <span class="course-duration">{{ course.duration }}</span>
+      <span class="course-students">{{ course.studentsCount }} Enrolled</span>
+    </div>
+    
+    <div class="course-tags">
+      <span class="tag" *ngFor="let skill of course.skills.slice(0, 2)">{{ skill }}</span>
+    </div>
+    
+    <div class="course-footer">
+      <div class="course-price" *ngIf="course.price > 0">
+        <span class="current-price">${{ course.price }}</span>
+        <span class="original-price" *ngIf="course.originalPrice > course.price">${{ course.originalPrice }}</span>
+      </div>
+      <div class="course-price" *ngIf="course.price === 0">
+        <span class="current-price">Free</span>
+      </div>
+      
+      <div class="course-provider">
+        <span>{{ course.provider.name }}</span>
+      </div>
+    </div>
+    
+    <!-- Progress bar for enrolled courses -->
+    <div class="course-progress" *ngIf="showProgress">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progressPercent"></div>
+      </div>
+      <span class="progress-text">{{ progressPercent }}% Complete</span>
+    </div>
+  </div>
+</div>

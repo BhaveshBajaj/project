@@ -1,0 +1,101 @@
+<div class="auth-container">
+  <!-- Left Side - Illustration (same as login) -->
+  <div class="auth-left">
+    <div class="brand-text">Build, Schedule!</div>
+    <div class="illustration-container">
+      <!-- Simplified illustration elements -->
+      <div class="computer">
+        <div class="screen">
+          <div class="video-player">
+            <div class="play-button">▶</div>
+            <div class="progress-bar"></div>
+          </div>
+        </div>
+      </div>
+      <div class="person"></div>
+      <div class="objects">
+        <div class="books"></div>
+        <div class="coffee-cup"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side - Signup Form -->
+  <div class="auth-right">
+    <div class="form-container">
+      <div class="form-header">
+        <h2 class="product-name">Product Name</h2>
+        <h1 class="welcome-title">Sign up</h1>
+        <p class="form-subtitle">Enter details mentioned below</p>
+      </div>
+
+      <form (ngSubmit)="onSubmit()" #signupForm="ngForm" class="auth-form">
+        <div class="input-group">
+          <input
+            type="text"
+            name="username"
+            [(ngModel)]="signupData.username"
+            required
+            class="form-input"
+            placeholder="Enter your username"
+          />
+          <label class="floating-label">User Name</label>
+        </div>
+
+        <div class="input-group">
+          <input
+            type="email"
+            name="email"
+            [(ngModel)]="signupData.email"
+            required
+            class="form-input"
+            placeholder="Enter your email"
+          />
+          <label class="floating-label">Email</label>
+        </div>
+
+        <div class="input-group">
+          <input
+            type="password"
+            name="password"
+            [(ngModel)]="signupData.password"
+            required
+            class="form-input"
+            placeholder="••••••••••••"
+          />
+          <label class="floating-label">Password</label>
+        </div>
+
+        <div class="form-options">
+          <label class="remember-me">
+            <input
+              type="checkbox"
+              name="agreeToTerms"
+              [(ngModel)]="signupData.agreeToTerms"
+              required
+            />
+            <span class="checkmark"></span>
+            I agree to the terms and conditions
+          </label>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <button 
+          type="submit" 
+          class="submit-btn"
+          [disabled]="isLoading || !signupForm.valid"
+        >
+          <span *ngIf="isLoading">Creating Account...</span>
+          <span *ngIf="!isLoading">Register</span>
+        </button>
+
+        <div class="form-footer">
+          <p>Already have an account? <a (click)="goToLogin()" class="login-link">Login</a></p>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
