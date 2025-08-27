@@ -44,4 +44,9 @@ export class CourseCardComponent {
   onCourseClick(): void {
     this.router.navigate(['/course', this.course.id]);
   }
+
+  onAuthorClick(event: Event): void {
+    event.stopPropagation(); // Prevent course click
+    this.router.navigate(['/author', this.course.authorId]);
+  }
 }

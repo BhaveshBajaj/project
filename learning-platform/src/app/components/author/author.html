@@ -1,0 +1,204 @@
+<div class="author-page" *ngIf="!isLoading && author">
+  <!-- Header -->
+  <header class="author-header">
+    <div class="header-content">
+      <button class="back-btn" (click)="onBackToDashboard()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back to Dashboard
+      </button>
+      <h1 class="page-title">Author Profile</h1>
+    </div>
+  </header>
+
+  <!-- Author Hero Section -->
+  <section class="author-hero">
+    <div class="hero-background">
+      <!-- Abstract background pattern -->
+      <div class="bg-pattern"></div>
+    </div>
+    
+    <div class="hero-content">
+      <div class="author-main-info">
+        <div class="author-avatar">
+          <img [src]="author.avatarUrl" [alt]="author.fullName" />
+          <div class="author-badge" *ngIf="author.role === 'Author'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Verified Author
+          </div>
+        </div>
+        
+        <div class="author-details">
+          <h1 class="author-name">{{ author.fullName }}</h1>
+          <p class="author-title" *ngIf="author.track">{{ author.track }}</p>
+          <div class="author-location" *ngIf="author.location">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            {{ author.location }}
+          </div>
+          <p class="author-bio" *ngIf="author.bio">{{ author.bio }}</p>
+        </div>
+      </div>
+
+      <!-- Author Stats -->
+      <div class="author-stats">
+        <div class="stat-card">
+          <div class="stat-number">{{ authorStats.totalCourses }}</div>
+          <div class="stat-label">Courses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ formatNumber(authorStats.totalStudents) }}</div>
+          <div class="stat-label">Students</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ authorStats.averageRating.toFixed(1) }}</div>
+          <div class="stat-label">Rating</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ formatNumber(authorStats.totalReviews) }}</div>
+          <div class="stat-label">Reviews</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content Section -->
+  <section class="author-content">
+    <!-- Navigation Tabs -->
+    <div class="content-tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'courses'"
+        (click)="onTabChange('courses')"
+      >
+        Courses ({{ authorStats.totalCourses }})
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'about'"
+        (click)="onTabChange('about')"
+      >
+        About
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'achievements'"
+        (click)="onTabChange('achievements')"
+      >
+        Achievements
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <!-- Courses Tab -->
+      <div class="courses-tab" *ngIf="activeTab === 'courses'">
+        <!-- Create New Course Button -->
+        <div class="courses-header" *ngIf="isCurrentUser()">
+          <button class="create-course-btn" (click)="navigateToCreateCourse()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Create New Course
+          </button>
+        </div>
+        
+        <div class="courses-grid" *ngIf="authorCourses.length > 0">
+          <div 
+            class="course-item" 
+            *ngFor="let course of authorCourses"
+            (click)="onCourseClick(course)"
+          >
+            <div class="course-image">
+              <img [src]="course.thumbnailUrl" [alt]="course.title" />
+              <div class="course-overlay">
+                <div class="course-rating">
+                  <span class="rating-stars">★</span>
+                  <span class="rating-value">{{ course.rating }}</span>
+                  <span class="rating-count">({{ course.reviewsCount | number }})</span>
+                </div>
+              </div>
+            </div>
+            <div class="course-info">
+              <h3 class="course-title">{{ course.title }}</h3>
+              <p class="course-subtitle">{{ course.subtitle }}</p>
+              <div class="course-meta">
+                <span class="course-students">{{ formatNumber(course.studentsCount || 0) }} students</span>
+                <span class="course-duration">{{ course.duration }}</span>
+              </div>
+              <div class="course-skills">
+                <span class="skill-tag" *ngFor="let skill of course.skills.slice(0, 3)">
+                  {{ skill }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="no-courses" *ngIf="authorCourses.length === 0">
+          <div class="no-courses-icon">📚</div>
+          <h3>No courses yet</h3>
+          <p>This author hasn't published any courses yet.</p>
+        </div>
+      </div>
+
+      <!-- About Tab -->
+      <div class="about-tab" *ngIf="activeTab === 'about'">
+        <div class="about-content">
+          <div class="about-section">
+            <h3>About {{ author.fullName }}</h3>
+            <p *ngIf="author.bio; else noBio">{{ author.bio }}</p>
+            <ng-template #noBio>
+              <p class="no-bio">This author hasn't added a biography yet.</p>
+            </ng-template>
+          </div>
+          
+          <div class="about-section">
+            <h3>Experience</h3>
+            <p>{{ getExperienceText() }} of teaching experience</p>
+          </div>
+          
+          <div class="about-section">
+            <h3>Expertise</h3>
+            <div class="expertise-tags">
+              <span class="expertise-tag" *ngFor="let skill of getUniqueSkills()">
+                {{ skill }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="about-section" *ngIf="author.joinDate">
+            <h3>Member Since</h3>
+            <p>{{ author.joinDate | date:'MMM yyyy' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Achievements Tab -->
+      <div class="achievements-tab" *ngIf="activeTab === 'achievements'">
+        <div class="achievements-grid">
+          <div class="achievement-card" *ngFor="let achievement of authorStats.achievements">
+            <div class="achievement-icon">🏆</div>
+            <div class="achievement-info">
+              <h4>{{ achievement }}</h4>
+              <p>Awarded for excellence in course creation</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Loading State -->
+<div class="loading-state" *ngIf="isLoading">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+  </div>
+  <p>Loading author profile...</p>
+</div>

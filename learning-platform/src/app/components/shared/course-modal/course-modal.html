@@ -1,0 +1,73 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
+  <div class="modal-container">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">{{ title }}</h2>
+      <button class="close-btn" (click)="onClose()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Content -->
+    <div class="modal-content">
+      <div class="courses-grid" *ngIf="courses.length > 0">
+        <div 
+          class="course-item" 
+          *ngFor="let course of courses"
+          (click)="onCourseClick(course)"
+        >
+          <div class="course-image">
+            <img [src]="course.thumbnailUrl" [alt]="course.title" />
+            <div class="course-overlay">
+              <div class="course-rating">
+                <span class="rating-stars">★</span>
+                <span class="rating-value">{{ course.rating }}</span>
+                <span class="rating-count">({{ course.reviewsCount | number }})</span>
+              </div>
+            </div>
+          </div>
+          <div class="course-info">
+            <h3 class="course-title">{{ course.title }}</h3>
+            <p class="course-subtitle">{{ course.subtitle }}</p>
+            <div class="course-meta">
+              <div class="course-provider">
+                <img [src]="course.provider.logoUrl" [alt]="course.provider.name" class="provider-logo" />
+                <span>{{ course.provider.name }}</span>
+              </div>
+              <div class="course-stats">
+                <span class="enrollment">{{ course.studentsCount | number }} enrolled</span>
+                <span class="duration">{{ course.duration }}</span>
+              </div>
+            </div>
+            <div class="course-actions">
+              <button class="author-btn" (click)="onAuthorClick(course, $event)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                View Author
+              </button>
+            </div>
+            <div class="course-skills">
+              <span class="skill-tag" *ngFor="let skill of course.skills.slice(0, 3)">
+                {{ skill }}
+              </span>
+              <span class="more-skills" *ngIf="course.skills.length > 3">
+                +{{ course.skills.length - 3 }} more
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="courses.length === 0">
+        <div class="empty-icon">📚</div>
+        <h3>No courses found</h3>
+        <p>Try adjusting your search or filters.</p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -46,6 +46,15 @@
   text-decoration: none;
 }
 
+.breadcrumb-item.home-link {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb-item.home-link:hover {
+  color: #007AFF;
+}
+
 .breadcrumb-item.current {
   color: white;
   font-weight: 500;

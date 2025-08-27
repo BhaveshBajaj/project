@@ -187,6 +187,36 @@
   font-size: 10px;
 }
 
+.author-link {
+  background: transparent;
+  border: 1px solid #007AFF;
+  color: #007AFF;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.author-link:hover {
+  background: #007AFF;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.author-link::before {
+  content: "👤";
+  font-size: 10px;
+}
+
 .course-progress {
   margin-top: 12px;
   padding-top: 12px;

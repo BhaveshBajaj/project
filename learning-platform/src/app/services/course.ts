@@ -17,9 +17,15 @@ export class CourseService {
 
   private async loadData(): Promise<void> {
     try {
-      // For now, use mock data instead of fetching from the JSON file
-      // This avoids issues with the dev server not serving the assets correctly
-      this.courses = this.getMockCourses();
+      // First try to load from localStorage
+      const storedCourses = this.loadCoursesFromStorage();
+      if (storedCourses && storedCourses.length > 0) {
+        this.courses = storedCourses;
+      } else {
+        // Use mock data if no stored courses
+        this.courses = this.getMockCourses();
+      }
+      
       this.enrollments = this.getMockEnrollments();
       this.dataLoaded = true;
     } catch (error) {
@@ -100,6 +106,78 @@ export class CourseService {
         hasCaption: true,
         hasCertificate: true,
         features: ["Certificate of completion", "Hands-on projects", "Code reviews"]
+      },
+      {
+        id: 103,
+        title: "AWS Cloud Computing Fundamentals",
+        subtitle: "Master cloud computing with Amazon Web Services",
+        authorId: 2,
+        provider: {
+          name: "Amazon",
+          logoUrl: "https://i.imgur.com/aws-logo.png"
+        },
+        thumbnailUrl: "https://i.imgur.com/aws-thumb.png",
+        rating: 4.9,
+        reviewsCount: 2100,
+        studentsCount: 32000,
+        duration: "8 weeks",
+        lastUpdated: "2024-01-20",
+        difficulty: "Beginner",
+        price: 89,
+        originalPrice: 159,
+        discount: 44,
+        languages: ["English"],
+        subtitles: ["English", "Spanish", "French"],
+        skills: ["AWS", "Cloud Computing", "DevOps", "Infrastructure"],
+        category: "Technology",
+        subCategory: "Cloud Computing",
+        description: "Comprehensive introduction to AWS cloud services",
+        objectives: ["Understand AWS core services", "Deploy applications on AWS", "Manage cloud infrastructure"],
+        requirements: ["Basic IT knowledge", "Computer with internet access"],
+        targetAudience: ["IT professionals", "Developers", "System administrators"],
+        syllabus: [],
+        publishedDate: "2023-11-20",
+        isNewlyLaunched: false,
+        isBestseller: true,
+        hasCaption: true,
+        hasCertificate: true,
+        features: ["AWS hands-on labs", "Real-world projects", "Industry certification prep"]
+      },
+      {
+        id: 104,
+        title: "Data Analytics with Apache Kafka",
+        subtitle: "Real-time data streaming and analytics",
+        authorId: 2,
+        provider: {
+          name: "Apache",
+          logoUrl: "https://i.imgur.com/kafka-logo.png"
+        },
+        thumbnailUrl: "https://i.imgur.com/kafka-thumb.png",
+        rating: 4.7,
+        reviewsCount: 756,
+        studentsCount: 8900,
+        duration: "6 weeks",
+        lastUpdated: "2024-02-10",
+        difficulty: "Advanced",
+        price: 119,
+        originalPrice: 199,
+        discount: 40,
+        languages: ["English"],
+        subtitles: ["English"],
+        skills: ["Apache Kafka", "Data Streaming", "Big Data", "Real-time Analytics"],
+        category: "Technology",
+        subCategory: "Data Engineering",
+        description: "Master real-time data processing with Apache Kafka",
+        objectives: ["Set up Kafka clusters", "Build streaming applications", "Handle high-volume data"],
+        requirements: ["Java programming knowledge", "Understanding of distributed systems"],
+        targetAudience: ["Data engineers", "Backend developers", "DevOps engineers"],
+        syllabus: [],
+        publishedDate: "2023-10-15",
+        isNewlyLaunched: false,
+        isBestseller: false,
+        hasCaption: true,
+        hasCertificate: true,
+        features: ["Live streaming demos", "Production-ready examples", "Performance optimization"]
       }
     ];
   }
@@ -214,5 +292,56 @@ export class CourseService {
 
   getCoursesByCategory(category: string): Observable<Course[]> {
     return of(this.courses.filter(course => course.category === category));
+  }
+
+  getCoursesByAuthor(authorId: number): Observable<Course[]> {
+    return of(this.courses.filter(course => course.authorId === authorId));
+  }
+
+  createCourse(courseData: any): Observable<Course> {
+    // Create a new course with the next available ID
+    const newCourse: Course = {
+      ...courseData,
+      id: this.getNextCourseId(),
+      isNewlyLaunched: true,
+      isBestseller: false,
+      hasCaption: false,
+      hasCertificate: true,
+      provider: {
+        name: courseData.authorName,
+        url: "",
+        logo: courseData.authorAvatar
+      },
+      category: courseData.category || "General",
+      subCategory: "Custom",
+      objectives: courseData.whatYouWillLearn ? [courseData.whatYouWillLearn] : [],
+      requirements: courseData.requirements ? [courseData.requirements] : [],
+      targetAudience: ["Students", "Professionals"],
+      syllabus: courseData.modules || [],
+      features: ["Certificate of completion", "Lifetime access", "Mobile access"]
+    };
+
+    // Add to courses array
+    this.courses.push(newCourse);
+    
+    // Store in localStorage to persist
+    localStorage.setItem('courses', JSON.stringify(this.courses));
+    
+    return of(newCourse);
+  }
+
+  private getNextCourseId(): number {
+    const maxId = Math.max(...this.courses.map(course => course.id), 0);
+    return maxId + 1;
+  }
+
+  private loadCoursesFromStorage(): Course[] | null {
+    try {
+      const stored = localStorage.getItem('courses');
+      return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.error('Error loading courses from storage:', error);
+      return null;
+    }
   }
 }

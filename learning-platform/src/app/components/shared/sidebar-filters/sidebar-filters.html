@@ -1,0 +1,59 @@
+<div class="sidebar-filters">
+  <!-- Search Bar -->
+  <div class="filter-search">
+    <div class="search-input-wrapper">
+      <input 
+        type="text" 
+        class="filter-search-input" 
+        placeholder="Search filters..."
+        [(ngModel)]="searchQuery"
+      />
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+        <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Filter Actions -->
+  <div class="filter-actions">
+    <div class="active-filters" *ngIf="getActiveFiltersCount() > 0">
+      <span class="active-count">{{ getActiveFiltersCount() }} active filters</span>
+      <button class="clear-filters-btn" (click)="clearFilters()">Clear All</button>
+    </div>
+  </div>
+
+  <!-- Filter Groups -->
+  <div class="filter-groups">
+    <div class="filter-group" *ngFor="let group of filterGroups">
+      <h3 class="filter-group-title">{{ group.title }}</h3>
+      
+      <div class="filter-options">
+        <label 
+          class="filter-option" 
+          *ngFor="let option of group.options"
+          [class.selected]="isOptionSelected(group.key, option.id, group.multiSelect)"
+        >
+          <input 
+            [type]="group.multiSelect ? 'checkbox' : 'radio'"
+            [name]="group.key"
+            [value]="option.id"
+            [checked]="isOptionSelected(group.key, option.id, group.multiSelect)"
+            (change)="onFilterChange(group.key, option.id, group.multiSelect)"
+            class="filter-input"
+          />
+          <span class="filter-checkbox" *ngIf="group.multiSelect">
+            <svg class="check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <polyline points="20,6 9,17 4,12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="filter-radio" *ngIf="!group.multiSelect"></span>
+          <span class="filter-label-content">
+            <span class="filter-text">{{ option.label }}</span>
+            <span class="filter-count" *ngIf="option.count !== undefined">({{ option.count }})</span>
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>

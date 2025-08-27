@@ -1,0 +1,131 @@
+<div class="blog-detail-page" *ngIf="!isLoading && blog">
+  <!-- Header -->
+  <header class="blog-header">
+    <div class="header-content">
+      <button class="back-btn" (click)="onBackToDashboard()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back to Dashboard
+      </button>
+      <div class="breadcrumb">
+        <span class="breadcrumb-item">Blog</span>
+        <span class="breadcrumb-separator">></span>
+        <span class="breadcrumb-item">{{ blog.category }}</span>
+        <span class="breadcrumb-separator">></span>
+        <span class="breadcrumb-item current">{{ blog.title }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Article -->
+  <article class="blog-article">
+    <!-- Article Header -->
+    <div class="article-header">
+      <div class="category-badge">{{ blog.category }}</div>
+      <h1 class="article-title">{{ blog.title }}</h1>
+      <p class="article-excerpt">{{ blog.excerpt }}</p>
+      
+      <div class="article-meta">
+        <div class="author-info">
+          <div class="author-avatar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="author-details">
+            <button class="author-name" (click)="onAuthorClick()">{{ blog.author }}</button>
+            <div class="publish-info">
+              <span class="publish-date">{{ formatDate(blog.publishedDate) }}</span>
+              <span class="read-time">{{ blog.readTime }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="article-stats">
+          <div class="stat-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span>{{ blog.views }} views</span>
+          </div>
+          <button class="stat-item like-btn" (click)="onLike()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span>{{ blog.likes }} likes</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Featured Image -->
+    <div class="article-image" *ngIf="blog.imageUrl">
+      <img [src]="blog.imageUrl" [alt]="blog.title" />
+    </div>
+
+    <!-- Article Content -->
+    <div class="article-content" [innerHTML]="blog.content"></div>
+
+    <!-- Tags -->
+    <div class="article-tags">
+      <h4>Tags</h4>
+      <div class="tags-list">
+        <span class="tag" *ngFor="let tag of blog.tags">{{ tag }}</span>
+      </div>
+    </div>
+
+    <!-- Article Footer -->
+    <div class="article-footer">
+      <div class="social-actions">
+        <button class="action-btn like-btn" (click)="onLike()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Like ({{ blog.likes }})
+        </button>
+        <button class="action-btn share-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Share
+        </button>
+      </div>
+      
+      <div class="author-card">
+        <h4>About the Author</h4>
+        <div class="author-summary">
+          <div class="author-avatar-large">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="author-info-extended">
+            <button class="author-name-large" (click)="onAuthorClick()">{{ blog.author }}</button>
+            <p class="author-bio">Expert in {{ blog.category.toLowerCase() }} with years of industry experience.</p>
+            <button class="view-profile-btn" (click)="onAuthorClick()">View Profile</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+</div>
+
+<!-- Loading State -->
+<div class="loading-state" *ngIf="isLoading">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+  </div>
+  <p>Loading blog post...</p>
+</div>
+
+<!-- Error State -->
+<div class="error-state" *ngIf="!isLoading && !blog">
+  <div class="error-icon">📝</div>
+  <h3>Blog post not found</h3>
+  <p>The blog post you're looking for doesn't exist or has been removed.</p>
+  <button class="back-btn" (click)="onBackToDashboard()">Back to Dashboard</button>
+</div>

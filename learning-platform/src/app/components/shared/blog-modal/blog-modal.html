@@ -1,0 +1,64 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
+  <div class="modal-container">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">{{ title }}</h2>
+      <button class="close-btn" (click)="onClose()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Content -->
+    <div class="modal-content">
+      <div class="blogs-grid" *ngIf="blogs.length > 0">
+        <div 
+          class="blog-item" 
+          *ngFor="let blog of blogs"
+          (click)="onBlogClick(blog)"
+        >
+          <div class="blog-image">
+            <img [src]="blog.imageUrl" [alt]="blog.title" />
+            <div class="blog-overlay">
+              <div class="blog-category">{{ blog.category }}</div>
+            </div>
+          </div>
+          <div class="blog-info">
+            <h3 class="blog-title">{{ blog.title }}</h3>
+            <p class="blog-excerpt">{{ blog.excerpt }}</p>
+            <div class="blog-meta">
+              <div class="blog-author">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>{{ blog.author }}</span>
+              </div>
+              <div class="blog-stats">
+                <span class="read-time">{{ blog.readTime }}</span>
+                <span class="publish-date">{{ formatDate(blog.publishedDate) }}</span>
+                <span class="views" *ngIf="blog.views">{{ blog.views }} views</span>
+              </div>
+            </div>
+            <div class="blog-tags">
+              <span class="tag" *ngFor="let tag of blog.tags.slice(0, 3)">
+                {{ tag }}
+              </span>
+              <span class="more-tags" *ngIf="blog.tags.length > 3">
+                +{{ blog.tags.length - 3 }} more
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="blogs.length === 0">
+        <div class="empty-icon">📝</div>
+        <h3>No blogs found</h3>
+        <p>Check back later for new blog posts.</p>
+      </div>
+    </div>
+  </div>
+</div>

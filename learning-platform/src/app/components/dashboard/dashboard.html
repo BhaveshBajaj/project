@@ -49,7 +49,8 @@
     <div class="header-right">
       <div class="user-profile">
         <div class="notification-icon">🔔</div>
-        <div class="user-avatar">
+        <button class="my-profile-btn" (click)="navigateToMyProfile()">My Profile</button>
+        <div class="user-avatar" (click)="navigateToMyProfile()">
           <img [src]="currentUser?.avatarUrl" [alt]="currentUser?.fullName" />
         </div>
         <div class="user-info">
@@ -100,13 +101,20 @@
 
     <!-- Content Grid -->
     <div class="content-grid">
-      <!-- Left Column -->
-      <div class="left-column">
+      <!-- Left Sidebar - Filters -->
+      <div class="left-sidebar">
+        <app-sidebar-filters
+          (filtersChanged)="onFiltersChanged($event)"
+        ></app-sidebar-filters>
+      </div>
+
+      <!-- Main Content Column -->
+      <div class="main-content-column">
         <!-- Last Viewed Courses -->
         <section class="section">
           <div class="section-header">
             <h2>Last Viewed Courses</h2>
-            <a href="#" class="view-all">View All</a>
+            <a href="#" class="view-all" (click)="openViewAllModal('lastViewed'); $event.preventDefault()">View All</a>
           </div>
           <div class="courses-grid">
             <app-course-card 
@@ -120,7 +128,7 @@
         <section class="section">
           <div class="section-header">
             <h2>Newly Launched</h2>
-            <a href="#" class="view-all">View All</a>
+            <a href="#" class="view-all" (click)="openViewAllModal('newlyLaunched'); $event.preventDefault()">View All</a>
           </div>
           <div class="courses-grid">
             <app-course-card 
@@ -134,10 +142,10 @@
         <section class="section">
           <div class="section-header">
             <h2>Blogs</h2>
-            <a href="#" class="view-all">View All</a>
+            <a href="#" class="view-all" (click)="openViewAllModal('blogs'); $event.preventDefault()">View All</a>
           </div>
           <div class="blogs-grid">
-            <div class="blog-card" *ngFor="let blog of blogs">
+            <div class="blog-card" *ngFor="let blog of blogs" (click)="onBlogClick(blog)">
               <div class="blog-image">
                 <img [src]="blog.imageUrl" [alt]="blog.title" />
               </div>
@@ -149,6 +157,20 @@
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- Filtered Courses Section -->
+        <section class="section" *ngIf="filteredCourses.length > 0">
+          <div class="section-header">
+            <h2>All Courses ({{ filteredCourses.length }})</h2>
+            <a href="#" class="view-all" (click)="openViewAllModal('filtered'); $event.preventDefault()">View All</a>
+          </div>
+          <div class="courses-grid">
+            <app-course-card 
+              *ngFor="let course of filteredCourses.slice(0, 6)" 
+              [course]="course"
+            ></app-course-card>
           </div>
         </section>
       </div>
@@ -216,4 +238,22 @@
       </div>
     </div>
   </main>
+
+  <!-- Course Modal -->
+  <app-course-modal
+    [isOpen]="modalState.isOpen"
+    [title]="modalState.title"
+    [courses]="modalState.courses"
+    (closeModal)="closeModal()"
+    (courseSelected)="onCourseSelected($event)"
+  ></app-course-modal>
+
+  <!-- Blog Modal -->
+  <app-blog-modal
+    [isOpen]="blogModalState.isOpen"
+    [title]="blogModalState.title"
+    [blogs]="blogModalState.blogs"
+    (closeModal)="closeBlogModal()"
+    (blogSelected)="onBlogSelected($event)"
+  ></app-blog-modal>
 </div>

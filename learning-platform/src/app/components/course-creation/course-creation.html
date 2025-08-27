@@ -1,0 +1,386 @@
+<div class="course-creation-container">
+  <!-- Header -->
+  <header class="creation-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1 class="brand">Product Name</h1>
+        <div class="search-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+            <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <input type="text" placeholder="Search Courses" />
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <div class="nav-links">
+          <a href="#" class="nav-link" (click)="goBack()">Home</a>
+          <a href="#" class="nav-link">My Courses</a>
+          <a href="#" class="nav-link active">Create New Course</a>
+        </div>
+        
+        <div class="header-actions">
+          <button class="notification-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="2"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+          <div class="user-avatar">
+            <img src="https://via.placeholder.com/40" alt="User Avatar" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="creation-content">
+    <div class="creation-header-section">
+      <div class="creation-title-section">
+        <h1 class="creation-title">Create New Course</h1>
+        <button class="publish-btn" [class.disabled]="currentStep < 4" (click)="publishCourse()">
+          Publish
+        </button>
+      </div>
+      
+      <!-- Step Navigation -->
+      <div class="step-navigation">
+        <div 
+          class="step" 
+          *ngFor="let step of steps" 
+          [class.active]="currentStep === step.number"
+          [class.completed]="step.completed"
+          (click)="goToStep(step.number)"
+        >
+          <div class="step-number">
+            <span *ngIf="!step.completed">{{ step.number.toString().padStart(2, '0') }}</span>
+            <svg *ngIf="step.completed" width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <span class="step-title">{{ step.title }}</span>
+          <svg *ngIf="step.number < totalSteps" class="step-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div class="step-content">
+      <!-- Step 1: Basic Details -->
+      <div class="step-panel" *ngIf="currentStep === 1">
+        <h2 class="step-panel-title">Details</h2>
+        <form [formGroup]="basicDetailsForm" class="details-form">
+          <div class="form-group">
+            <label>Course Title</label>
+            <input 
+              type="text" 
+              formControlName="title"
+              placeholder="Enter Course title here"
+              class="form-input"
+              [class.error]="validationErrors.title"
+            />
+            <div class="error-message" *ngIf="validationErrors.title">
+              {{ validationErrors.title }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Description</label>
+            <textarea 
+              formControlName="description"
+              placeholder="Enter Description here"
+              class="form-textarea"
+              rows="4"
+              [class.error]="validationErrors.description"
+            ></textarea>
+            <div class="error-message" *ngIf="validationErrors.description">
+              {{ validationErrors.description }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Upload Course Thumbnail</label>
+            <div class="file-upload-area" (click)="thumbnailInput.click()">
+              <div class="upload-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2"/>
+                  <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"/>
+                  <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </div>
+              <p>Drag and drop file to upload or,</p>
+              <button type="button" class="choose-file-btn">Choose file</button>
+            </div>
+            <input 
+              #thumbnailInput
+              type="file" 
+              accept="image/*"
+              style="display: none;"
+              (change)="onThumbnailSelected($event)"
+            />
+          </div>
+        </form>
+        
+        <div class="step-actions">
+          <button class="delete-btn">Delete</button>
+          <button class="next-btn" (click)="nextStep()">Next</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Course Content -->
+      <div class="step-panel" *ngIf="currentStep === 2">
+        <h2 class="step-panel-title">Modules</h2>
+        
+        <div class="modules-container">
+          <div class="error-message" *ngIf="validationErrors.modules">
+            {{ validationErrors.modules }}
+          </div>
+          
+          <div class="module-card" *ngFor="let module of modules; let i = index">
+            <div class="module-header">
+              <input 
+                type="text" 
+                [(ngModel)]="module.title"
+                class="module-title-input"
+                placeholder="Enter module title here"
+                [class.error]="validationErrors['module_' + i + '_title']"
+              />
+              <div class="error-message" *ngIf="validationErrors['module_' + i + '_title']">
+                {{ validationErrors['module_' + i + '_title'] }}
+              </div>
+              <div class="module-stats">
+                <span>{{ getLectureCount(module) }}</span>
+                <button class="delete-module-btn" (click)="deleteModule(module.id)" title="Delete Module">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
+                <button class="collapse-btn">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div class="lectures-list">
+              <div class="lecture-item" *ngFor="let lecture of module.lectures">
+                <div class="lecture-icon">
+                  {{ getLectureIcon(lecture.type) }}
+                </div>
+                <div class="lecture-content">
+                  <h4 class="lecture-title">{{ lecture.title }}</h4>
+                  <p class="lecture-meta">{{ lecture.description }} | {{ lecture.duration }}</p>
+                </div>
+                <button class="delete-lecture-btn" (click)="deleteLecture(module.id, lecture.id)" title="Delete Lecture">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
+              </div>
+              
+              <div class="lecture-actions">
+                <button class="add-another-btn" (click)="openAddLectureModal(module)">
+                  Add another
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <button class="add-section-btn" (click)="addNewSection()">
+            Add New Section
+          </button>
+        </div>
+        
+        <div class="step-actions">
+          <button class="delete-btn">Delete</button>
+          <div class="nav-buttons">
+            <button class="prev-btn" (click)="prevStep()">Prev</button>
+            <button class="next-btn" (click)="nextStep()">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Overview -->
+      <div class="step-panel" *ngIf="currentStep === 3">
+        <h2 class="step-panel-title">Overview</h2>
+        <form class="overview-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Duration</label>
+              <select class="form-select">
+                <option>Enter Course title here</option>
+                <option>1-3 hours</option>
+                <option>3-6 hours</option>
+                <option>6-12 hours</option>
+                <option>12+ hours</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Level</label>
+              <select class="form-select">
+                <option>Enter Course title here</option>
+                <option>Beginner</option>
+                <option>Intermediate</option>
+                <option>Advanced</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>What you will learn</label>
+            <textarea 
+              class="form-textarea"
+              placeholder="Enter Course title here"
+              rows="4"
+            ></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>What skill you will gain</label>
+            <textarea 
+              class="form-textarea"
+              placeholder="Enter Course title here"
+              rows="4"
+            ></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Prerequisites</label>
+            <textarea 
+              class="form-textarea"
+              placeholder="Enter Course title here"
+              rows="4"
+            ></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Course Requirements</label>
+            <textarea 
+              class="form-textarea"
+              placeholder="Enter Course title here"
+              rows="4"
+            ></textarea>
+          </div>
+        </form>
+        
+        <div class="step-actions">
+          <button class="delete-btn">Delete</button>
+          <div class="nav-buttons">
+            <button class="prev-btn" (click)="prevStep()">Prev</button>
+            <button class="next-btn" (click)="nextStep()">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Quiz -->
+      <div class="step-panel" *ngIf="currentStep === 4">
+        <h2 class="step-panel-title">Quiz</h2>
+        <div class="quiz-placeholder">
+          <p>Quiz functionality will be implemented here</p>
+        </div>
+        
+        <div class="step-actions">
+          <button class="delete-btn">Delete</button>
+          <div class="nav-buttons">
+            <button class="prev-btn" (click)="prevStep()">Prev</button>
+            <button class="publish-final-btn" (click)="publishCourse()">Publish</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add New Lecture Modal -->
+<div class="modal-backdrop" *ngIf="showAddLectureModal" (click)="closeAddLectureModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">Add New Lecture</h2>
+    
+    <form class="lecture-form">
+      <div class="form-group">
+        <label>Type</label>
+        <select [(ngModel)]="lectureForm.type" name="type" class="form-select">
+          <option value="video">Video</option>
+          <option value="text">Text</option>
+          <option value="pdf">PDF</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Topic Title</label>
+        <input 
+          type="text" 
+          [(ngModel)]="lectureForm.title"
+          name="title"
+          placeholder="Enter Topic title here"
+          class="form-input"
+        />
+      </div>
+      
+      <div class="form-group">
+        <label>Topic Description</label>
+        <textarea 
+          [(ngModel)]="lectureForm.description"
+          name="description"
+          placeholder="Enter Topic Description here"
+          class="form-textarea"
+          rows="4"
+        ></textarea>
+      </div>
+      
+      <div class="form-group" *ngIf="lectureForm.type === 'video'">
+        <label>Upload Video File</label>
+        <div class="file-upload-area" (click)="videoInput.click()">
+          <div class="upload-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2"/>
+              <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"/>
+              <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <p>Drag and drop file to upload or,</p>
+          <button type="button" class="choose-file-btn">Choose file</button>
+        </div>
+        <input 
+          #videoInput
+          type="file" 
+          accept="video/*"
+          style="display: none;"
+          (change)="onVideoFileSelected($event)"
+        />
+        
+        <div class="form-group" style="margin-top: 1rem;">
+          <label>or add link for video</label>
+          <input 
+            type="url" 
+            [(ngModel)]="lectureForm.videoUrl"
+            name="videoUrl"
+            placeholder="enter link here"
+            class="form-input"
+          />
+        </div>
+      </div>
+    </form>
+    
+    <div class="modal-actions">
+      <button class="cancel-btn" (click)="closeAddLectureModal()">Cancel</button>
+      <button class="submit-btn" (click)="addLecture()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-backdrop" *ngIf="showPublishSuccessModal">
+  <div class="modal-content success-modal">
+    <h2 class="success-title">Your course published successfully!</h2>
+    <p class="success-message">
+      Dear user, your course is successfully published and its available for the enrollment!
+    </p>
+    <button class="ok-btn" (click)="closeSuccessModal()">Ok</button>
+  </div>
+</div>

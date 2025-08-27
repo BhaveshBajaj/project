@@ -172,6 +172,22 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  
+  .my-profile-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+  }
 }
 
 .notification-icon {
@@ -301,8 +317,16 @@
 /* Content Grid */
 .content-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 48px;
+  grid-template-columns: 300px 2fr 1fr;
+  gap: 32px;
+}
+
+.left-sidebar {
+  position: relative;
+}
+
+.main-content-column {
+  min-width: 0; /* Prevents grid overflow */
 }
 
 /* Sections */
@@ -595,6 +619,10 @@
   .content-grid {
     grid-template-columns: 1fr;
     gap: 32px;
+  }
+  
+  .left-sidebar {
+    display: none;
   }
   
   .right-column {

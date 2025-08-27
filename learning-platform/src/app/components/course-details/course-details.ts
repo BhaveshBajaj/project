@@ -260,4 +260,8 @@ export class CourseDetailsComponent implements OnInit {
     }
     return count.toString();
   }
+
+  navigateHome(): void {
+    this.router.navigate(['/dashboard']);
+  }
 }

@@ -34,6 +34,10 @@
       <div class="course-provider">
         <span>{{ course.provider.name }}</span>
       </div>
+      
+      <button class="author-link" (click)="onAuthorClick($event)">
+        View Author
+      </button>
     </div>
     
     <!-- Progress bar for enrolled courses -->
