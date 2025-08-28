@@ -48,12 +48,13 @@ export class SignupComponent {
       next: (success: boolean) => {
         this.isLoading = false;
         if (success) {
-          this.successMessage = 'Account created successfully! User data has been stored. Redirecting...';
+          this.successMessage = 'Account created successfully! You are now logged in. Redirecting...';
           
           // Log user creation for debugging
-          console.log('New user registered successfully');
+          console.log('✅ New user registered and persisted automatically');
           console.log('Username:', this.signupData.username);
           console.log('Email:', this.signupData.email);
+          console.log('🎉 No manual steps required - user data is automatically stored!');
           
           setTimeout(() => {
             this.router.navigate(['/dashboard']);

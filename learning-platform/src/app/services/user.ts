@@ -20,7 +20,7 @@ export class UserService {
 
   private async loadData(): Promise<void> {
     try {
-      // First check for cached users (includes newly registered users)
+      // Always check localStorage first - this is the primary data source for users
       const cachedUsers = localStorage.getItem('usersCache');
       const cachedEnrollments = localStorage.getItem('userEnrollmentsCache');
       
@@ -28,32 +28,39 @@ export class UserService {
         this.users = JSON.parse(cachedUsers);
         this.userEnrollments = cachedEnrollments ? JSON.parse(cachedEnrollments) : {};
         this.usersSubject.next(this.users);
-        console.log('Loaded users from cache:', this.users.length);
-      } else {
-        // Load from data.json initially
-        this.http.get<AppData>('data.json').subscribe({
-          next: (data) => {
-            this.users = data.users || [];
-            this.userEnrollments = data.userEnrollments || {};
-            
-            // Cache the initial data
-            localStorage.setItem('usersCache', JSON.stringify(this.users));
-            localStorage.setItem('userEnrollmentsCache', JSON.stringify(this.userEnrollments));
-            
-            this.usersSubject.next(this.users);
-            console.log('Loaded users from data.json:', this.users.length);
-          },
-          error: (error) => {
-            console.error('Failed to load users from data.json:', error);
-            this.users = this.getMockUsers();
-            this.usersSubject.next(this.users);
-          }
-        });
+        console.log('✅ UserService: Loaded users from localStorage (primary source):', this.users.length);
+        return;
       }
+
+      // Only load from data.json for initial setup if no cache exists
+      console.log('UserService: Loading initial users from data.json...');
+      this.http.get<AppData>('data.json').subscribe({
+        next: (data) => {
+          this.users = data.users || [];
+          this.userEnrollments = data.userEnrollments || {};
+          
+          // Cache the initial data - localStorage becomes primary source
+          localStorage.setItem('usersCache', JSON.stringify(this.users));
+          localStorage.setItem('userEnrollmentsCache', JSON.stringify(this.userEnrollments));
+          
+          this.usersSubject.next(this.users);
+          console.log('✅ UserService: Initial users cached to localStorage:', this.users.length);
+        },
+        error: (error) => {
+          console.error('UserService: Failed to load users from data.json:', error);
+          this.users = this.getMockUsers();
+          // Cache mock users too
+          localStorage.setItem('usersCache', JSON.stringify(this.users));
+          this.usersSubject.next(this.users);
+          console.log('✅ UserService: Mock users cached to localStorage');
+        }
+      });
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('UserService: Error loading user data:', error);
       this.users = this.getMockUsers();
+      localStorage.setItem('usersCache', JSON.stringify(this.users));
       this.usersSubject.next(this.users);
+      console.log('✅ UserService: Fallback users cached to localStorage');
     }
   }
 
@@ -132,10 +139,6 @@ export class UserService {
     return of(false);
   }
 
-  getAllUsers(): Observable<User[]> {
-    return this.users$;
-  }
-
   searchUsers(query: string): Observable<User[]> {
     const filteredUsers = this.users.filter(user =>
       user.fullName.toLowerCase().includes(query.toLowerCase()) ||
@@ -147,18 +150,6 @@ export class UserService {
 
   getUsersByRole(role: string): Observable<User[]> {
     return of(this.users.filter(user => user.role === role));
-  }
-
-  // Refresh user data from cache (useful after new user registration)
-  refreshUserData(): void {
-    const cachedUsers = localStorage.getItem('usersCache');
-    const cachedEnrollments = localStorage.getItem('userEnrollmentsCache');
-    
-    if (cachedUsers) {
-      this.users = JSON.parse(cachedUsers);
-      this.userEnrollments = cachedEnrollments ? JSON.parse(cachedEnrollments) : {};
-      console.log('Refreshed user data - Total users:', this.users.length);
-    }
   }
 
   // Get total user count (including newly registered)
@@ -176,5 +167,20 @@ export class UserService {
   getAuthors(): Observable<User[]> {
     const authors = this.users.filter(user => user.role === 'Author');
     return of(authors);
+  }
+
+  // Refresh user data from localStorage (called when new users are registered)
+  refreshUserData(): void {
+    const cachedUsers = localStorage.getItem('usersCache');
+    if (cachedUsers) {
+      this.users = JSON.parse(cachedUsers);
+      this.usersSubject.next(this.users);
+      console.log('✅ UserService: Refreshed user data from localStorage:', this.users.length);
+    }
+  }
+
+  // Get all users observable
+  getAllUsers(): Observable<User[]> {
+    return this.usersSubject.asObservable();
   }
 }

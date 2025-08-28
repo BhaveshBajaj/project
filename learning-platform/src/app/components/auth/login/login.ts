@@ -53,6 +53,15 @@ export class LoginComponent {
         this.isLoading = false;
         this.errorMessage = error.message || 'An error occurred during login. Please try again.';
         console.error('Login error:', error);
+        
+        // Provide helpful hints for common issues
+        if (error.message === 'User not found') {
+          this.errorMessage = 'No account found with this email. Please check your email or sign up for a new account.';
+        } else if (error.message.includes('Password must be at least 6 characters')) {
+          this.errorMessage = 'Password must be at least 6 characters long.';
+        } else if (error.message === 'Invalid password') {
+          this.errorMessage = 'Incorrect password. Please try again.';
+        }
       }
     });
   }

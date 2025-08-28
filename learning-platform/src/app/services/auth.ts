@@ -21,10 +21,6 @@ export class AuthService {
 
   constructor(private http: HttpClient) {
     this.initializeAuth();
-    // Clear cache in development to ensure fresh data loading
-    if (!localStorage.getItem(this.USERS_CACHE_KEY)) {
-      console.log('First time loading - no cache found');
-    }
   }
 
   private initializeAuth(): void {
@@ -39,20 +35,21 @@ export class AuthService {
   }
 
   private loadUsers(): Observable<User[]> {
-    // First check cache
+    // First check cache - this is now the primary data source
     const cachedUsers = localStorage.getItem(this.USERS_CACHE_KEY);
     if (cachedUsers) {
-      console.log('Loading users from cache');
+      console.log('Loading users from localStorage cache (primary source)');
       return of(JSON.parse(cachedUsers));
     }
 
-    console.log('Loading users from data.json...');
-    // Load from public/data.json
-    return this.http.get<AuthData>('data.json').pipe(
+    console.log('Loading initial users from assets/data.json...');
+    // Load from assets/data.json for initial setup
+    return this.http.get<AuthData>('assets/data.json').pipe(
       map(data => {
-        console.log('Successfully loaded users:', data.users.length);
-        // Cache users for offline use
+        console.log('Successfully loaded initial users:', data.users.length);
+        // Cache users - localStorage becomes the primary source
         localStorage.setItem(this.USERS_CACHE_KEY, JSON.stringify(data.users));
+        console.log('✅ Users cached to localStorage - now using localStorage as primary data source');
         return data.users;
       }),
       catchError(error => {
@@ -65,7 +62,7 @@ export class AuthService {
             id: 1,
             username: 'demo',
             email: 'demo@example.com',
-            password: 'hashed_password',
+            password: 'demo123',
             fullName: 'Demo User',
             track: 'Learning Demo',
             avatarUrl: 'https://i.pravatar.cc/150?u=demo',
@@ -78,6 +75,7 @@ export class AuthService {
         
         console.log('Using fallback users for demo');
         localStorage.setItem(this.USERS_CACHE_KEY, JSON.stringify(fallbackUsers));
+        console.log('✅ Fallback users cached to localStorage');
         return of(fallbackUsers);
       })
     );
@@ -115,11 +113,18 @@ export class AuthService {
           throw new Error('User not found');
         }
 
-        // In a real app, you'd hash the password and compare
-        // For demo purposes, we'll use simple string comparison
-        // You can use any password for existing users since data.json has "hashed_password"
-        if (password.length < 6) {
-          throw new Error('Invalid password');
+        // For existing users from data.json, accept any password >= 6 characters
+        // For new users created via signup, use the actual password
+        if (user.password === 'hashed_password') {
+          // This is an existing user from data.json - accept any password >= 6
+          if (password.length < 6) {
+            throw new Error('Password must be at least 6 characters long');
+          }
+        } else {
+          // This is a new user - check actual password
+          if (user.password !== password) {
+            throw new Error('Invalid password');
+          }
         }
 
         // Generate auth token
@@ -132,11 +137,12 @@ export class AuthService {
         // Update current user
         this.currentUserSubject.next(user);
         
+        console.log('✅ Login successful for:', user.email);
         return true;
       }),
       catchError(error => {
         console.error('Login error:', error);
-        return of(false);
+        return throwError(() => error);
       })
     );
   }
@@ -168,7 +174,7 @@ export class AuthService {
           id: newUserId,
           username: userData.username,
           email: userData.email,
-          password: 'hashed_password', // In real app, this would be hashed
+          password: userData.password, // Store actual password for new users
           fullName: userData.fullName || userData.username,
           track: null,
           avatarUrl: `https://i.pravatar.cc/150?u=${userData.username}`,
@@ -178,9 +184,14 @@ export class AuthService {
           location: null
         };
 
-        // Add to users cache - this becomes our persistent storage
+        // Add to users cache - this automatically persists the user
         const updatedUsers = [...users, newUser];
         localStorage.setItem(this.USERS_CACHE_KEY, JSON.stringify(updatedUsers));
+
+        console.log('🎉 NEW USER REGISTERED SUCCESSFULLY!');
+        console.log('👤 User Details:', newUser);
+        console.log('✅ User automatically persisted to localStorage');
+        console.log('🔄 User will be available immediately and across browser sessions');
 
         // Also create initial enrollment data for the new user
         this.createInitialUserEnrollments(newUserId);
@@ -283,5 +294,16 @@ export class AuthService {
     const users = JSON.parse(localStorage.getItem(this.USERS_CACHE_KEY) || '[]');
     console.log('Current registered users:', users);
     console.log('User count:', users.length);
+  }
+
+  // Get current users data for debugging/export purposes
+  exportUsersData(): void {
+    const users = JSON.parse(localStorage.getItem(this.USERS_CACHE_KEY) || '[]');
+    console.log('📋 CURRENT USERS IN CACHE:');
+    console.log('Total users:', users.length);
+    users.forEach((user: User) => {
+      console.log(`- ${user.fullName} (${user.email}) - Role: ${user.role}`);
+    });
+    return users;
   }
 }
