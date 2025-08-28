@@ -155,6 +155,7 @@
         <!-- Filters for Search Results (Always show when in search mode) -->
         <div class="search-filters-sidebar">
           <app-sidebar-filters
+            [courses]="originalSearchResults"
             (filtersChanged)="onSearchResultsFiltersChanged($event)"
           ></app-sidebar-filters>
         </div>

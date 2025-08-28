@@ -162,16 +162,6 @@ export class DashboardComponent implements OnInit {
       this.userStats = stats;
     });
 
-    // Load last viewed courses
-    this.courseService.getLastViewedCourses(userId).subscribe((courses: Course[]) => {
-      this.lastViewedCourses = courses;
-    });
-
-    // Load newly launched courses
-    this.courseService.getNewlyLaunchedCourses().subscribe((courses: Course[]) => {
-      this.newlyLaunchedCourses = courses;
-    });
-
     // Load blogs
     this.blogService.getAllBlogs().subscribe((blogs: Blog[]) => {
       this.blogs = blogs;
@@ -181,6 +171,10 @@ export class DashboardComponent implements OnInit {
     this.courseService.getAllCourses().subscribe((courses: Course[]) => {
       this.allCourses = courses;
       this.filteredCourses = courses;
+      
+      // Use the same courses for Last Viewed and Newly Launched sections
+      this.lastViewedCourses = courses;
+      this.newlyLaunchedCourses = courses;
     });
   }
 
@@ -236,10 +230,12 @@ export class DashboardComponent implements OnInit {
       
       // Initialize search results as empty array to show filters immediately
       this.searchResults = [];
+      this.originalSearchResults = [];
       this.isSearching = true;
       
       // Search through all courses in data.json
       this.courseService.searchCourses(this.searchQuery).subscribe((courses: Course[]) => {
+        this.originalSearchResults = courses; // Store original results
         this.searchResults = courses;
         this.isSearching = false;
       });
@@ -252,6 +248,7 @@ export class DashboardComponent implements OnInit {
     this.isSearchMode = false;
     this.isSearching = false;
     this.searchResults = [];
+    this.originalSearchResults = [];
     this.searchQuery = '';
     this.showSearchSuggestions = false;
   }
@@ -266,6 +263,9 @@ export class DashboardComponent implements OnInit {
     this.performSearch();
   }
 
+  // Store original search results to avoid losing data when filters change
+  originalSearchResults: Course[] = [];
+
   onSearchResultsFiltersChanged(filters: FilterState): void {
     // Apply filters to search results
     this.currentFilters = filters;
@@ -273,28 +273,73 @@ export class DashboardComponent implements OnInit {
   }
 
   private applyFiltersToSearchResults(): void {
-    if (!this.isSearchMode || this.searchResults.length === 0) return;
+    if (!this.isSearchMode || this.originalSearchResults.length === 0) return;
 
-    let filtered = [...this.searchResults];
+    // Start with original search results, not already filtered ones
+    let filtered = [...this.originalSearchResults];
 
-    // Apply filters similar to the existing filter logic
-    if (this.currentFilters['difficulty'] !== 'all') {
-      const difficulty = this.currentFilters['difficulty'] as string;
-      filtered = filtered.filter(course => 
-        course.difficulty.toLowerCase() === difficulty.toLowerCase()
-      );
+    // Apply rating filter
+    if (this.currentFilters['rating'] && (this.currentFilters['rating'] as string[]).length > 0) {
+      const ratings = this.currentFilters['rating'] as string[];
+      filtered = filtered.filter(course => {
+        return ratings.some(rating => {
+          const minRating = parseFloat(rating);
+          return course.rating >= minRating;
+        });
+      });
     }
 
-    if (this.currentFilters['provider'] !== 'all') {
-      const provider = this.currentFilters['provider'] as string;
-      filtered = filtered.filter(course => 
-        course.provider.name.toLowerCase() === provider.toLowerCase()
-      );
+    // Apply category filter (match against skills)
+    if (this.currentFilters['categories'] && (this.currentFilters['categories'] as string[]).length > 0) {
+      const categories = this.currentFilters['categories'] as string[];
+      filtered = filtered.filter(course => {
+        return categories.some(category => {
+          const categoryLabel = category.replace('-', ' ').toLowerCase();
+          return course.skills.some(skill => 
+            skill.toLowerCase().includes(categoryLabel) || 
+            categoryLabel.includes(skill.toLowerCase())
+          );
+        });
+      });
     }
 
-    if (this.currentFilters['rating'] && typeof this.currentFilters['rating'] === 'number' && this.currentFilters['rating'] > 0) {
-      const rating = this.currentFilters['rating'] as number;
-      filtered = filtered.filter(course => course.rating >= rating);
+    // Apply level filter (match against difficulty)
+    if (this.currentFilters['level'] && (this.currentFilters['level'] as string[]).length > 0) {
+      const levels = this.currentFilters['level'] as string[];
+      filtered = filtered.filter(course => {
+        return levels.some(level => 
+          course.difficulty.toLowerCase().includes(level.toLowerCase())
+        );
+      });
+    }
+
+    // Apply course type filter
+    if (this.currentFilters['courseType'] && this.currentFilters['courseType'] !== 'all') {
+      // This would need to be implemented based on user enrollment data
+      console.log('Course type filter:', this.currentFilters['courseType']);
+    }
+
+    // Apply published date filter
+    if (this.currentFilters['publishedDate'] && this.currentFilters['publishedDate'] !== 'anytime') {
+      const now = new Date();
+      const filterDate = this.currentFilters['publishedDate'] as string;
+      
+      filtered = filtered.filter(course => {
+        const publishedDate = new Date(course.publishedDate);
+        const diffTime = now.getTime() - publishedDate.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        switch (filterDate) {
+          case 'last-week':
+            return diffDays <= 7;
+          case 'last-month':
+            return diffDays <= 30;
+          case 'last-year':
+            return diffDays <= 365;
+          default:
+            return true;
+        }
+      });
     }
 
     // Update displayed results
@@ -310,14 +355,14 @@ export class DashboardComponent implements OnInit {
         this.modalState = {
           isOpen: true,
           title: 'Last Viewed Courses',
-          courses: this.lastViewedCourses
+          courses: this.filteredCourses
         };
         break;
       case 'newlyLaunched':
         this.modalState = {
           isOpen: true,
           title: 'Newly Launched Courses',
-          courses: this.newlyLaunchedCourses
+          courses: this.filteredCourses
         };
         break;
       case 'blogs':

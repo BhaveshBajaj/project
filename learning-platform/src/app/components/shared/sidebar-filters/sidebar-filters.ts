@@ -1,6 +1,7 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Course } from '../../../models/course';
 
 export interface FilterOption {
   id: string;
@@ -27,8 +28,9 @@ export interface FilterState {
   templateUrl: './sidebar-filters.html',
   styleUrl: './sidebar-filters.scss'
 })
-export class SidebarFiltersComponent {
+export class SidebarFiltersComponent implements OnChanges {
   @Output() filtersChanged = new EventEmitter<FilterState>();
+  @Input() courses: Course[] = [];
 
   searchQuery = '';
   
@@ -38,12 +40,12 @@ export class SidebarFiltersComponent {
       key: 'courseType',
       multiSelect: false,
       options: [
-        { id: 'all', label: 'All Courses', count: 1234, selected: true },
-        { id: 'enrolled', label: 'Enrolled Courses', count: 23 },
-        { id: 'completed', label: 'Completed', count: 12 },
-        { id: 'in-progress', label: 'In Progress', count: 8 },
-        { id: 'certificates', label: 'Certificates', count: 15 },
-        { id: 'bookmarks', label: 'Bookmarks', count: 45 }
+        { id: 'all', label: 'All Courses', count: 0, selected: true },
+        { id: 'enrolled', label: 'Enrolled Courses', count: 0 },
+        { id: 'completed', label: 'Completed', count: 0 },
+        { id: 'in-progress', label: 'In Progress', count: 0 },
+        { id: 'certificates', label: 'Certificates', count: 0 },
+        { id: 'bookmarks', label: 'Bookmarks', count: 0 }
       ]
     },
     {
@@ -51,11 +53,11 @@ export class SidebarFiltersComponent {
       key: 'rating',
       multiSelect: true,
       options: [
-        { id: '5', label: '★★★★★ 5.0', count: 234 },
-        { id: '4', label: '★★★★☆ 4.0 & up', count: 567 },
-        { id: '3', label: '★★★☆☆ 3.0 & up', count: 890 },
-        { id: '2', label: '★★☆☆☆ 2.0 & up', count: 123 },
-        { id: '1', label: '★☆☆☆☆ 1.0 & up', count: 45 }
+        { id: '5', label: '★★★★★ 5.0', count: 0 },
+        { id: '4', label: '★★★★☆ 4.0 & up', count: 0 },
+        { id: '3', label: '★★★☆☆ 3.0 & up', count: 0 },
+        { id: '2', label: '★★☆☆☆ 2.0 & up', count: 0 },
+        { id: '1', label: '★☆☆☆☆ 1.0 & up', count: 0 }
       ]
     },
     {
@@ -63,10 +65,10 @@ export class SidebarFiltersComponent {
       key: 'publishedDate',
       multiSelect: false,
       options: [
-        { id: 'anytime', label: 'Any time', count: 1234, selected: true },
-        { id: 'last-week', label: 'Last week', count: 56 },
-        { id: 'last-month', label: 'Last month', count: 234 },
-        { id: 'last-year', label: 'Last year', count: 567 }
+        { id: 'anytime', label: 'Any time', count: 0, selected: true },
+        { id: 'last-week', label: 'Last week', count: 0 },
+        { id: 'last-month', label: 'Last month', count: 0 },
+        { id: 'last-year', label: 'Last year', count: 0 }
       ]
     },
     {
@@ -74,14 +76,14 @@ export class SidebarFiltersComponent {
       key: 'categories',
       multiSelect: true,
       options: [
-        { id: 'data-science', label: 'Data Science', count: 345 },
-        { id: 'programming', label: 'Programming', count: 456 },
-        { id: 'machine-learning', label: 'Machine Learning', count: 234 },
-        { id: 'web-development', label: 'Web Development', count: 567 },
-        { id: 'mobile-dev', label: 'Mobile Development', count: 123 },
-        { id: 'cloud-computing', label: 'Cloud Computing', count: 234 },
-        { id: 'cybersecurity', label: 'Cybersecurity', count: 178 },
-        { id: 'ui-ux', label: 'UI/UX Design', count: 234 }
+        { id: 'data-science', label: 'Data Science', count: 0 },
+        { id: 'programming', label: 'Programming', count: 0 },
+        { id: 'machine-learning', label: 'Machine Learning', count: 0 },
+        { id: 'web-development', label: 'Web Development', count: 0 },
+        { id: 'mobile-dev', label: 'Mobile Development', count: 0 },
+        { id: 'cloud-computing', label: 'Cloud Computing', count: 0 },
+        { id: 'cybersecurity', label: 'Cybersecurity', count: 0 },
+        { id: 'ui-ux', label: 'UI/UX Design', count: 0 }
       ]
     },
     {
@@ -89,10 +91,10 @@ export class SidebarFiltersComponent {
       key: 'level',
       multiSelect: true,
       options: [
-        { id: 'beginner', label: 'Beginner', count: 456 },
-        { id: 'intermediate', label: 'Intermediate', count: 345 },
-        { id: 'advanced', label: 'Advanced', count: 234 },
-        { id: 'expert', label: 'Expert', count: 123 }
+        { id: 'beginner', label: 'Beginner', count: 0 },
+        { id: 'intermediate', label: 'Intermediate', count: 0 },
+        { id: 'advanced', label: 'Advanced', count: 0 },
+        { id: 'expert', label: 'Expert', count: 0 }
       ]
     }
   ];
@@ -104,6 +106,88 @@ export class SidebarFiltersComponent {
     categories: [],
     level: []
   };
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['courses']) {
+      this.updateFilterCounts();
+    }
+  }
+
+  private updateFilterCounts(): void {
+    // Update course type counts
+    const courseTypeGroup = this.filterGroups.find(g => g.key === 'courseType');
+    if (courseTypeGroup) {
+      courseTypeGroup.options.forEach(option => {
+        if (option.id === 'all') {
+          option.count = this.courses.length;
+        } else {
+          // For now, set other course types to 0 since we don't have enrollment data
+          option.count = 0;
+        }
+      });
+    }
+
+    // Update rating counts
+    const ratingGroup = this.filterGroups.find(g => g.key === 'rating');
+    if (ratingGroup) {
+      ratingGroup.options.forEach(option => {
+        const minRating = parseFloat(option.id);
+        option.count = this.courses.filter(course => course.rating >= minRating).length;
+      });
+    }
+
+    // Update published date counts
+    const publishedDateGroup = this.filterGroups.find(g => g.key === 'publishedDate');
+    if (publishedDateGroup) {
+      const now = new Date();
+      publishedDateGroup.options.forEach(option => {
+        if (option.id === 'anytime') {
+          option.count = this.courses.length;
+        } else {
+          option.count = this.courses.filter(course => {
+            const publishedDate = new Date(course.publishedDate);
+            const diffTime = now.getTime() - publishedDate.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            switch (option.id) {
+              case 'last-week':
+                return diffDays <= 7;
+              case 'last-month':
+                return diffDays <= 30;
+              case 'last-year':
+                return diffDays <= 365;
+              default:
+                return false;
+            }
+          }).length;
+        }
+      });
+    }
+
+    // Update category counts
+    const categoryGroup = this.filterGroups.find(g => g.key === 'categories');
+    if (categoryGroup) {
+      categoryGroup.options.forEach(option => {
+        const categoryLabel = option.id.replace('-', ' ').toLowerCase();
+        option.count = this.courses.filter(course => 
+          course.skills.some(skill => 
+            skill.toLowerCase().includes(categoryLabel) || 
+            categoryLabel.includes(skill.toLowerCase())
+          )
+        ).length;
+      });
+    }
+
+    // Update level counts
+    const levelGroup = this.filterGroups.find(g => g.key === 'level');
+    if (levelGroup) {
+      levelGroup.options.forEach(option => {
+        option.count = this.courses.filter(course => 
+          course.difficulty.toLowerCase().includes(option.id.toLowerCase())
+        ).length;
+      });
+    }
+  }
 
   onFilterChange(groupKey: string, optionId: string, isMultiSelect: boolean): void {
     if (isMultiSelect) {
