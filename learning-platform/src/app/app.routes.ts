@@ -7,16 +7,41 @@ import { CourseDetailsComponent } from './components/course-details/course-detai
 import { AuthorComponent } from './components/author/author';
 import { BlogDetailComponent } from './components/blog-detail/blog-detail';
 import { CourseCreationComponent } from './components/course-creation/course-creation';
+import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'search', component: CourseSearchComponent },
-  { path: 'course/:id', component: CourseDetailsComponent },
-  { path: 'author/:id', component: AuthorComponent },
-  { path: 'blog/:id', component: BlogDetailComponent },
-  { path: 'create-course', component: CourseCreationComponent },
+  { 
+    path: 'dashboard', 
+    component: DashboardComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'search', 
+    component: CourseSearchComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'course/:id', 
+    component: CourseDetailsComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'author/:id', 
+    component: AuthorComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'blog/:id', 
+    component: BlogDetailComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'create-course', 
+    component: CourseCreationComponent, 
+    canActivate: [AuthGuard] 
+  },
   { path: '**', redirectTo: '/login' }
 ];

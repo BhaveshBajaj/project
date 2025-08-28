@@ -1,21 +1,27 @@
 <div class="auth-container">
-  <!-- Left Side - Illustration (same as login) -->
+  <!-- Left Side - SVG Illustration -->
   <div class="auth-left">
-    <div class="brand-text">Build, Schedule!</div>
     <div class="illustration-container">
-      <!-- Simplified illustration elements -->
-      <div class="computer">
-        <div class="screen">
-          <div class="video-player">
-            <div class="play-button">▶</div>
-            <div class="progress-bar"></div>
+      <img 
+        src="auth-illustration.svg" 
+        alt="Learning Platform Illustration" 
+        class="auth-illustration"
+        loading="lazy"
+        (error)="onImageError($event)"
+      />
+      <div class="illustration-fallback" *ngIf="imageLoadError">
+        <div class="fallback-content">
+          <div class="brand-badge">
+            <h3>Learning Platform</h3>
+            <p>Build, Schedule, Learn!</p>
+          </div>
+          <div class="fallback-icons">
+            <div class="icon">📚</div>
+            <div class="icon">💻</div>
+            <div class="icon">🎯</div>
+            <div class="icon">🚀</div>
           </div>
         </div>
-      </div>
-      <div class="person"></div>
-      <div class="objects">
-        <div class="books"></div>
-        <div class="coffee-cup"></div>
       </div>
     </div>
   </div>
@@ -24,9 +30,12 @@
   <div class="auth-right">
     <div class="form-container">
       <div class="form-header">
-        <h2 class="product-name">Product Name</h2>
+        <h2 class="product-name">Learning Platform</h2>
         <h1 class="welcome-title">Sign up</h1>
-        <p class="form-subtitle">Enter details mentioned below</p>
+        <p class="form-subtitle">Create your account to start learning</p>
+        <div class="demo-info">
+          <p><small>💡 <strong>Demo:</strong> Try any username and email, password must be 6+ characters</small></p>
+        </div>
       </div>
 
       <form (ngSubmit)="onSubmit()" #signupForm="ngForm" class="auth-form">
@@ -38,8 +47,9 @@
             required
             class="form-input"
             placeholder="Enter your username"
+            minlength="3"
           />
-          <label class="floating-label">User Name</label>
+          <label class="floating-label">Username</label>
         </div>
 
         <div class="input-group">
@@ -61,9 +71,29 @@
             [(ngModel)]="signupData.password"
             required
             class="form-input"
-            placeholder="••••••••••••"
+            placeholder="Enter your password"
+            minlength="6"
           />
           <label class="floating-label">Password</label>
+        </div>
+
+        <div class="input-group" *ngIf="signupData.password">
+          <input
+            type="password"
+            name="confirmPassword"
+            [(ngModel)]="signupData.confirmPassword"
+            required
+            class="form-input"
+            placeholder="Confirm your password"
+          />
+          <label class="floating-label">Confirm Password</label>
+        </div>
+
+        <div class="password-strength" *ngIf="signupData.password">
+          <div class="strength-bar">
+            <div class="strength-fill" [class]="getPasswordStrengthClass()"></div>
+          </div>
+          <p class="strength-text">{{ getPasswordStrengthText() }}</p>
         </div>
 
         <div class="form-options">
@@ -75,7 +105,7 @@
               required
             />
             <span class="checkmark"></span>
-            I agree to the terms and conditions
+            I agree to the <a href="#" class="terms-link">terms and conditions</a>
           </label>
         </div>
 
@@ -83,17 +113,24 @@
           {{ errorMessage }}
         </div>
 
+        <div *ngIf="successMessage" class="success-message">
+          {{ successMessage }}
+        </div>
+
         <button 
           type="submit" 
           class="submit-btn"
-          [disabled]="isLoading || !signupForm.valid"
+          [disabled]="isLoading || !signupForm.valid || !passwordsMatch()"
         >
-          <span *ngIf="isLoading">Creating Account...</span>
-          <span *ngIf="!isLoading">Register</span>
+          <span *ngIf="isLoading" class="loading-content">
+            <span class="loading-spinner"></span>
+            Creating Account...
+          </span>
+          <span *ngIf="!isLoading">CREATE ACCOUNT</span>
         </button>
 
         <div class="form-footer">
-          <p>Already have an account? <a (click)="goToLogin()" class="login-link">Login</a></p>
+          <p>Already have an account? <a (click)="goToLogin()" class="login-link">Sign in</a></p>
         </div>
       </form>
     </div>

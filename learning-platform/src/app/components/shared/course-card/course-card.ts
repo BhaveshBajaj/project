@@ -49,4 +49,9 @@ export class CourseCardComponent {
     event.stopPropagation(); // Prevent course click
     this.router.navigate(['/author', this.course.authorId]);
   }
+
+  onImageError(event: any): void {
+    // Fallback to a default course image if the original fails to load
+    event.target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=250&fit=crop&auto=format';
+  }
 }

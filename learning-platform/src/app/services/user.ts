@@ -1,23 +1,59 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, BehaviorSubject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { map, catchError } from 'rxjs/operators';
 import { User } from '../models/user';
+import { AppData } from '../models/data';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
   private users: User[] = [];
+  private userEnrollments: { [userId: string]: { courseId: number; progressPercent: number }[] } = {};
+  private usersSubject = new BehaviorSubject<User[]>([]);
+  public users$ = this.usersSubject.asObservable();
 
-  constructor() {
+  constructor(private http: HttpClient) {
     this.loadData();
   }
 
   private async loadData(): Promise<void> {
     try {
-      // Use mock data for now
-      this.users = this.getMockUsers();
+      // First check for cached users (includes newly registered users)
+      const cachedUsers = localStorage.getItem('usersCache');
+      const cachedEnrollments = localStorage.getItem('userEnrollmentsCache');
+      
+      if (cachedUsers) {
+        this.users = JSON.parse(cachedUsers);
+        this.userEnrollments = cachedEnrollments ? JSON.parse(cachedEnrollments) : {};
+        this.usersSubject.next(this.users);
+        console.log('Loaded users from cache:', this.users.length);
+      } else {
+        // Load from assets/data.json initially
+        this.http.get<AppData>('assets/data.json').subscribe({
+          next: (data) => {
+            this.users = data.users || [];
+            this.userEnrollments = data.userEnrollments || {};
+            
+            // Cache the initial data
+            localStorage.setItem('usersCache', JSON.stringify(this.users));
+            localStorage.setItem('userEnrollmentsCache', JSON.stringify(this.userEnrollments));
+            
+            this.usersSubject.next(this.users);
+            console.log('Loaded users from assets/data.json:', this.users.length);
+          },
+          error: (error) => {
+            console.error('Failed to load users from assets/data.json:', error);
+            this.users = this.getMockUsers();
+            this.usersSubject.next(this.users);
+          }
+        });
+      }
     } catch (error) {
       console.error('Error loading user data:', error);
+      this.users = this.getMockUsers();
+      this.usersSubject.next(this.users);
     }
   }
 
@@ -63,15 +99,27 @@ export class UserService {
     inProgressCourses: number;
     totalHours: number;
     certificates: number;
+    totalGoals: number;
+    enrolledCourses: number;
   }> {
-    // Simulate user stats - in a real app, this would come from the backend
+    // Get user enrollments from data.json
+    const userEnrollments = this.userEnrollments[userId.toString()] || [];
+    
+    const completedCourses = userEnrollments.filter(e => e.progressPercent === 100).length;
+    const inProgressCourses = userEnrollments.filter(e => e.progressPercent > 0 && e.progressPercent < 100).length;
+    const enrolledCourses = userEnrollments.length;
+    
+    // Calculate stats based on real data
     const stats = {
-      totalCourses: 12,
-      completedCourses: 8,
-      inProgressCourses: 4,
-      totalHours: 156,
-      certificates: 6
+      totalCourses: enrolledCourses,
+      completedCourses: completedCourses,
+      inProgressCourses: inProgressCourses,
+      totalHours: enrolledCourses * 12, // Estimate 12 hours per course
+      certificates: completedCourses, // One certificate per completed course
+      totalGoals: Math.max(3, Math.ceil(enrolledCourses * 0.3)), // 30% of enrolled courses as goals
+      enrolledCourses: enrolledCourses
     };
+    
     return of(stats);
   }
 
@@ -85,7 +133,7 @@ export class UserService {
   }
 
   getAllUsers(): Observable<User[]> {
-    return of(this.users);
+    return this.users$;
   }
 
   searchUsers(query: string): Observable<User[]> {
@@ -99,5 +147,34 @@ export class UserService {
 
   getUsersByRole(role: string): Observable<User[]> {
     return of(this.users.filter(user => user.role === role));
+  }
+
+  // Refresh user data from cache (useful after new user registration)
+  refreshUserData(): void {
+    const cachedUsers = localStorage.getItem('usersCache');
+    const cachedEnrollments = localStorage.getItem('userEnrollmentsCache');
+    
+    if (cachedUsers) {
+      this.users = JSON.parse(cachedUsers);
+      this.userEnrollments = cachedEnrollments ? JSON.parse(cachedEnrollments) : {};
+      console.log('Refreshed user data - Total users:', this.users.length);
+    }
+  }
+
+  // Get total user count (including newly registered)
+  getTotalUserCount(): number {
+    return this.users.length;
+  }
+
+  // Get user enrollments from the JSON data
+  getUserEnrollments(userId: number): Observable<{ courseId: number; progressPercent: number }[]> {
+    const enrollments = this.userEnrollments[userId.toString()] || [];
+    return of(enrollments);
+  }
+
+  // Get authors from users with role 'Author'
+  getAuthors(): Observable<User[]> {
+    const authors = this.users.filter(user => user.role === 'Author');
+    return of(authors);
   }
 }

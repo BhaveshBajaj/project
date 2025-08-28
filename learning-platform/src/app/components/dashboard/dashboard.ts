@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { AuthService } from '../../services/auth';
 import { CourseService } from '../../services/course';
 import { UserService } from '../../services/user';
+import { BlogService } from '../../services/blog';
 import { CourseCardComponent } from '../shared/course-card/course-card';
 import { CourseModalComponent } from '../shared/course-modal/course-modal';
 import { BlogModalComponent } from '../shared/blog-modal/blog-modal';
@@ -19,7 +21,18 @@ import { Blog } from '../../models/blog';
   standalone: true,
   imports: [CommonModule, FormsModule, CourseCardComponent, CourseModalComponent, BlogModalComponent, SidebarFiltersComponent],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss'
+  styleUrl: './dashboard.scss',
+  animations: [
+    trigger('slideInOut', [
+      transition(':enter', [
+        style({ transform: 'translateY(-10px)', opacity: 0 }),
+        animate('200ms ease-in', style({ transform: 'translateY(0)', opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('200ms ease-out', style({ transform: 'translateY(-10px)', opacity: 0 }))
+      ])
+    ])
+  ]
 })
 export class DashboardComponent implements OnInit {
   currentUser: User | null = null;
@@ -28,7 +41,9 @@ export class DashboardComponent implements OnInit {
     completedCourses: 0,
     inProgressCourses: 0,
     totalHours: 0,
-    certificates: 0
+    certificates: 0,
+    totalGoals: 5,
+    enrolledCourses: 0
   };
   
   lastViewedCourses: Course[] = [];
@@ -37,128 +52,56 @@ export class DashboardComponent implements OnInit {
   // Search functionality
   searchQuery = '';
   showSearchSuggestions = false;
-  searchSuggestions = [
-    'Data Analytics',
-    'Machine Learning',
-    'Python Programming',
-    'Web Development',
-    'Digital Marketing',
-    'Cybersecurity',
-    'Cloud Computing',
-    'UI/UX Design'
-  ];
-  blogs: Blog[] = [
-    {
-      id: 1,
-      title: 'Mastering Google Data Analytics: A Complete Guide',
-      excerpt: 'Discover the power of Google Analytics and learn how to transform raw data into actionable insights for your business.',
-      imageUrl: 'https://i.imgur.com/3q6CqYq.png',
-      author: 'John Doe',
-      authorId: 2,
-      readTime: '5 min read',
-      publishedDate: '2024-01-15',
-      category: 'Analytics',
-      tags: ['Google Analytics', 'Data Analysis', 'Web Analytics'],
-      views: 1247,
-      likes: 89
-    },
-    {
-      id: 2,
-      title: 'Cybersecurity Best Practices for 2024',
-      excerpt: 'Stay ahead of cyber threats with these essential security practices and tools every developer should know.',
-      imageUrl: 'https://i.imgur.com/Y8L4En5.png',
-      author: 'Jane Smith',
-      authorId: 3,
-      readTime: '7 min read',
-      publishedDate: '2024-01-10',
-      category: 'Security',
-      tags: ['Cybersecurity', 'Data Protection', 'Best Practices'],
-      views: 892,
-      likes: 67
-    },
-    {
-      id: 3,
-      title: 'From Data to Insights: A Data Analyst Journey',
-      excerpt: 'Follow the journey of a data analyst and learn the essential skills needed to succeed in this growing field.',
-      imageUrl: 'https://i.imgur.com/nNn1y4J.png',
-      author: 'Mike Johnson',
-      authorId: 2,
-      readTime: '4 min read',
-      publishedDate: '2024-01-05',
-      category: 'Career',
-      tags: ['Data Analysis', 'Career Guide', 'Skills Development'],
-      views: 675,
-      likes: 45
-    },
-    {
-      id: 4,
-      title: 'Machine Learning Trends and Future Outlook',
-      excerpt: 'Explore the latest trends in machine learning and discover what the future holds for AI technologies.',
-      imageUrl: 'https://i.imgur.com/gK9fI5P.png',
-      author: 'Sarah Wilson',
-      authorId: 5,
-      readTime: '6 min read',
-      publishedDate: '2024-01-01',
-      category: 'Technology',
-      tags: ['Machine Learning', 'AI', 'Technology Trends'],
-      views: 1534,
-      likes: 112
-    },
-    {
-      id: 5,
-      title: 'Building Scalable Web Applications',
-      excerpt: 'Learn the principles and best practices for building web applications that can scale with your business.',
-      imageUrl: 'https://i.imgur.com/web-dev.png',
-      author: 'David Chen',
-      authorId: 4,
-      readTime: '8 min read',
-      publishedDate: '2023-12-28',
-      category: 'Development',
-      tags: ['Web Development', 'Scalability', 'Architecture'],
-      views: 943,
-      likes: 78
-    },
-    {
-      id: 6,
-      title: 'Cloud Computing: AWS vs Azure vs GCP',
-      excerpt: 'A comprehensive comparison of the three major cloud platforms to help you choose the right one.',
-      imageUrl: 'https://i.imgur.com/cloud-comp.png',
-      author: 'Stephane Maarek',
-      authorId: 2,
-      readTime: '10 min read',
-      publishedDate: '2023-12-25',
-      category: 'Cloud',
-      tags: ['Cloud Computing', 'AWS', 'Azure', 'GCP'],
-      views: 2156,
-      likes: 187
-    }
-  ];
+  isSearchMode = false;
+  isSearching = false;
+  searchResults: Course[] = [];
+  searchSuggestions: string[] = [];
+  blogs: Blog[] = [];
 
+  // Notification management
+  showNotifications = false;
+  unreadNotificationsCount = 0;
+  
   notifications = [
     {
       id: 1,
       title: 'New Enrolled Course "GCP Cloud Notification"',
       description: 'You have a new course to complete.',
-      time: '2 hours ago'
+      time: '2 hours ago',
+      isRead: false,
+      isPromotional: false
     },
     {
       id: 2,
       title: 'Upcoming Live Session',
       description: 'Live session for "UX case studies" from GCPM Today.',
-      time: '1 day ago'
+      time: '1 day ago',
+      isRead: false,
+      isPromotional: false
     },
     {
       id: 3,
       title: 'About "Data" Not in a "MSAP"',
       description: 'The new "Data Science" is waiting for you. Start your new skill of "Machine Learning".',
       time: '2 days ago',
+      isRead: true,
       isPromotional: true
     },
     {
       id: 4,
       title: 'New Course Added',
       description: 'Just launched "Complete Web Design Course". Enroll Now!',
-      time: '3 days ago'
+      time: '3 days ago',
+      isRead: false,
+      isPromotional: false
+    },
+    {
+      id: 5,
+      title: 'Certificate Available',
+      description: 'Your certificate for "Google Data Analytics" is ready for download.',
+      time: '5 days ago',
+      isRead: true,
+      isPromotional: false
     }
   ];
 
@@ -192,6 +135,7 @@ export class DashboardComponent implements OnInit {
     private authService: AuthService,
     private courseService: CourseService,
     private userService: UserService,
+    private blogService: BlogService,
     private router: Router
   ) {}
 
@@ -202,6 +146,9 @@ export class DashboardComponent implements OnInit {
         this.loadUserData(user.id);
       }
     });
+
+    // Initialize notification count
+    this.updateUnreadNotificationsCount();
 
     // Check if user is logged in
     if (!this.authService.isLoggedIn()) {
@@ -223,6 +170,11 @@ export class DashboardComponent implements OnInit {
     // Load newly launched courses
     this.courseService.getNewlyLaunchedCourses().subscribe((courses: Course[]) => {
       this.newlyLaunchedCourses = courses;
+    });
+
+    // Load blogs
+    this.blogService.getAllBlogs().subscribe((blogs: Blog[]) => {
+      this.blogs = blogs;
     });
 
     // Load all courses for filtering
@@ -253,34 +205,59 @@ export class DashboardComponent implements OnInit {
   onSearchInput(): void {
     this.showSearchSuggestions = this.searchQuery.length > 0;
     if (this.searchQuery.length > 0) {
-      // Filter suggestions based on search query
-      this.searchSuggestions = [
-        'Data Analytics',
-        'Machine Learning',
-        'Python Programming',
-        'Web Development',
-        'Digital Marketing',
-        'Cybersecurity',
-        'Cloud Computing',
-        'UI/UX Design'
-      ].filter(suggestion => 
-        suggestion.toLowerCase().includes(this.searchQuery.toLowerCase())
-      );
+      // Get all courses from the service for suggestions
+      this.courseService.getAllCourses().subscribe((allCourses: Course[]) => {
+        const suggestions = new Set<string>();
+        
+        allCourses.forEach(course => {
+          // Add course titles
+          if (course.title.toLowerCase().includes(this.searchQuery.toLowerCase())) {
+            suggestions.add(course.title);
+          }
+          // Add skills
+          course.skills.forEach(skill => {
+            if (skill.toLowerCase().includes(this.searchQuery.toLowerCase())) {
+              suggestions.add(skill);
+            }
+          });
+        });
+        
+        this.searchSuggestions = Array.from(suggestions).slice(0, 8);
+      });
+    } else {
+      this.clearSearch();
     }
   }
 
   performSearch(): void {
     if (this.searchQuery.trim()) {
-      console.log('Searching for:', this.searchQuery);
       this.showSearchSuggestions = false;
+      this.isSearchMode = true;
       
-      // Here you would typically filter the courses or navigate to search results
+      // Initialize search results as empty array to show filters immediately
+      this.searchResults = [];
+      this.isSearching = true;
+      
+      // Search through all courses in data.json
       this.courseService.searchCourses(this.searchQuery).subscribe((courses: Course[]) => {
-        console.log('Search results:', courses);
-        // You could update the displayed courses or show search results section
-        this.lastViewedCourses = courses.slice(0, 4);
+        this.searchResults = courses;
+        this.isSearching = false;
       });
+    } else {
+      this.clearSearch();
     }
+  }
+
+  clearSearch(): void {
+    this.isSearchMode = false;
+    this.isSearching = false;
+    this.searchResults = [];
+    this.searchQuery = '';
+    this.showSearchSuggestions = false;
+  }
+
+  onCourseClick(course: Course): void {
+    this.router.navigate(['/course', course.id]);
   }
 
   selectSuggestion(suggestion: string): void {
@@ -289,10 +266,42 @@ export class DashboardComponent implements OnInit {
     this.performSearch();
   }
 
-  // Hide suggestions when clicking outside
-  onDocumentClick(): void {
-    this.showSearchSuggestions = false;
+  onSearchResultsFiltersChanged(filters: FilterState): void {
+    // Apply filters to search results
+    this.currentFilters = filters;
+    this.applyFiltersToSearchResults();
   }
+
+  private applyFiltersToSearchResults(): void {
+    if (!this.isSearchMode || this.searchResults.length === 0) return;
+
+    let filtered = [...this.searchResults];
+
+    // Apply filters similar to the existing filter logic
+    if (this.currentFilters['difficulty'] !== 'all') {
+      const difficulty = this.currentFilters['difficulty'] as string;
+      filtered = filtered.filter(course => 
+        course.difficulty.toLowerCase() === difficulty.toLowerCase()
+      );
+    }
+
+    if (this.currentFilters['provider'] !== 'all') {
+      const provider = this.currentFilters['provider'] as string;
+      filtered = filtered.filter(course => 
+        course.provider.name.toLowerCase() === provider.toLowerCase()
+      );
+    }
+
+    if (this.currentFilters['rating'] && typeof this.currentFilters['rating'] === 'number' && this.currentFilters['rating'] > 0) {
+      const rating = this.currentFilters['rating'] as number;
+      filtered = filtered.filter(course => course.rating >= rating);
+    }
+
+    // Update displayed results
+    this.searchResults = filtered;
+  }
+
+
 
   // Modal methods
   openViewAllModal(type: string): void {
@@ -432,5 +441,49 @@ export class DashboardComponent implements OnInit {
     if (this.currentUser) {
       this.router.navigate(['/author', this.currentUser.id]);
     }
+  }
+
+  // Notification methods
+  toggleNotifications(): void {
+    this.showNotifications = !this.showNotifications;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    const notificationContainer = target.closest('.notification-container');
+    
+    if (!notificationContainer && this.showNotifications) {
+      this.showNotifications = false;
+    }
+    
+    // Also hide search suggestions
+    if (!target.closest('.search-container')) {
+      this.showSearchSuggestions = false;
+    }
+  }
+
+  markNotificationAsRead(notification: any): void {
+    if (!notification.isRead) {
+      notification.isRead = true;
+      this.updateUnreadNotificationsCount();
+    }
+  }
+
+  markAllAsRead(): void {
+    this.notifications.forEach(notification => {
+      notification.isRead = true;
+    });
+    this.updateUnreadNotificationsCount();
+  }
+
+  viewAllNotifications(): void {
+    this.showNotifications = false;
+    // Navigate to notifications page or show all notifications modal
+    console.log('Navigate to all notifications');
+  }
+
+  private updateUnreadNotificationsCount(): void {
+    this.unreadNotificationsCount = this.notifications.filter(n => !n.isRead).length;
   }
 }

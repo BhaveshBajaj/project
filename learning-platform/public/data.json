@@ -4,7 +4,7 @@
             "id": 1,
             "username": "hshimron",
             "email": "harry.shimron@example.com",
-            "password": "hashed_password",
+            "password": "hashed_password", 
             "fullName": "Harry Shimron",
             "track": "DC Software Engineer II",
             "avatarUrl": "https://i.pravatar.cc/150?u=hshimron",
@@ -87,9 +87,9 @@
             "authorId": 2,
             "provider": {
                 "name": "Google",
-                "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg"
+                "logoUrl": "https://i.imgur.com/your-google-logo.png"
             },
-            "thumbnailUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop&auto=format",
+            "thumbnailUrl": "https://i.imgur.com/3q6CqYq.png",
             "rating": 4.8,
             "reviewCount": 1278,
             "enrollmentCount": 45908,
@@ -120,9 +120,9 @@
             "authorId": 2,
             "provider": {
                 "name": "LinkedIn",
-                "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/0/01/LinkedIn_Logo.svg"
+                "logoUrl": "https://i.imgur.com/your-linkedin-logo.png"
             },
-            "thumbnailUrl": "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=400&h=250&fit=crop&auto=format",
+            "thumbnailUrl": "https://i.imgur.com/Y8L4En5.png",
             "rating": 4.5,
             "reviewCount": 133000,
             "enrollmentCount": 635,
@@ -147,9 +147,9 @@
             "authorId": 5,
             "provider": {
                 "name": "LinkedIn",
-                "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/0/01/LinkedIn_Logo.svg"
+                "logoUrl": "https://i.imgur.com/your-linkedin-logo.png"
             },
-            "thumbnailUrl": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop&auto=format",
+            "thumbnailUrl": "https://i.imgur.com/nNn1y4J.png",
             "rating": 4.3,
             "reviewCount": 133000,
             "enrollmentCount": 635,
@@ -173,9 +173,9 @@
             "authorId": 2,
             "provider": {
                 "name": "Google",
-                "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg"
+                "logoUrl": "https://i.imgur.com/your-google-logo.png"
             },
-            "thumbnailUrl": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=250&fit=crop&auto=format",
+            "thumbnailUrl": "https://i.imgur.com/gK9fI5P.png",
             "rating": 4.9,
             "reviewCount": 98000,
             "enrollmentCount": 550,
@@ -280,7 +280,7 @@
             },
             {
                 "id": 402,
-                "questionText": "Your customer table has a column titled Customer Type. How does this most likely relate to your company's business rules?",
+                "questionText": "Your customer table has a column titled Customer Type. How does this most likely relate to your company’s business rules?",
                 "options": [
                     {
                         "text": "There is a business rule that defines what a Customer Type is.",
@@ -373,21 +373,21 @@
     "banners": [
         {
             "id": 501,
-            "imageUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=400&fit=crop&auto=format",
+            "imageUrl": "https://i.imgur.com/your-banner-1.png",
             "status": "active",
             "scheduleDate": null,
             "expiryDate": null
         },
         {
             "id": 502,
-            "imageUrl": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&h=400&fit=crop&auto=format",
+            "imageUrl": "https://i.imgur.com/your-banner-2.png",
             "status": "scheduled",
             "scheduleDate": "2024-12-01T00:00:00.000Z",
             "expiryDate": "2024-12-25T23:59:59.000Z"
         },
         {
             "id": 503,
-            "imageUrl": "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&h=400&fit=crop&auto=format",
+            "imageUrl": "https://i.imgur.com/your-banner-3.png",
             "status": "inactive",
             "scheduleDate": null,
             "expiryDate": null

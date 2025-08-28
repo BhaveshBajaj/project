@@ -21,7 +21,13 @@
             (input)="onSearchInput()"
             (keyup.enter)="performSearch()"
           />
-          <button class="search-btn" (click)="performSearch()">
+          <button class="clear-input-btn" *ngIf="searchQuery" (click)="clearSearch()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+          <button class="search-btn" (click)="performSearch()" title="Search">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
               <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
@@ -48,8 +54,45 @@
     
     <div class="header-right">
       <div class="user-profile">
-        <div class="notification-icon">🔔</div>
-        <button class="my-profile-btn" (click)="navigateToMyProfile()">My Profile</button>
+        <div class="notification-container">
+          <button class="notification-bell" (click)="toggleNotifications()" [class.active]="showNotifications">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="notification-badge" *ngIf="unreadNotificationsCount > 0">{{ unreadNotificationsCount }}</span>
+          </button>
+          
+          <!-- Notifications Dropdown -->
+          <div class="notifications-dropdown" *ngIf="showNotifications" [@slideInOut]>
+            <div class="notifications-header">
+              <h3>Notifications</h3>
+              <button class="close-notifications" (click)="toggleNotifications()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+                  <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+            </div>
+            <div class="notifications-list">
+              <div class="notification-item" *ngFor="let notification of notifications" [class.unread]="!notification.isRead">
+                <div class="notification-icon">
+                  <div class="notification-dot" [class.promotional]="notification.isPromotional"></div>
+                </div>
+                <div class="notification-content" (click)="markNotificationAsRead(notification)">
+                  <h4>{{ notification.title }}</h4>
+                  <p>{{ notification.description }}</p>
+                  <span class="notification-time">{{ notification.time }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="notifications-footer">
+              <button class="mark-all-read" (click)="markAllAsRead()">Mark all as read</button>
+              <button class="view-all-notifications" (click)="viewAllNotifications()">View all</button>
+            </div>
+          </div>
+        </div>
+        
         <div class="user-avatar" (click)="navigateToMyProfile()">
           <img [src]="currentUser?.avatarUrl" [alt]="currentUser?.fullName" />
         </div>
@@ -77,39 +120,84 @@
     <section class="stats-section">
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-number">{{ userStats.totalCourses }}</div>
+          <div class="stat-number">{{ userStats.totalGoals }}</div>
           <div class="stat-label">My Goals</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ userStats.completedCourses }}</div>
-          <div class="stat-label">Enrolled Courses</div>
         </div>
         <div class="stat-card">
           <div class="stat-number">{{ userStats.certificates }}</div>
           <div class="stat-label">Certificates Earned</div>
         </div>
         <div class="stat-card">
-          <div class="stat-number">{{ userStats.totalHours }}</div>
-          <div class="stat-label">My notes</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ userStats.inProgressCourses }}</div>
-          <div class="stat-label">Downloads</div>
+          <div class="stat-number">{{ userStats.enrolledCourses }}</div>
+          <div class="stat-label">Courses Enrolled</div>
         </div>
       </div>
     </section>
 
-    <!-- Content Grid -->
-    <div class="content-grid">
-      <!-- Left Sidebar - Filters -->
-      <div class="left-sidebar">
-        <app-sidebar-filters
-          (filtersChanged)="onFiltersChanged($event)"
-        ></app-sidebar-filters>
+    <!-- Search Results Section -->
+    <div class="search-results-section" *ngIf="isSearchMode">
+      <div class="search-results-header">
+        <div class="search-info">
+          <h2>Search Results for "{{ searchQuery }}"</h2>
+          <span class="results-count">{{ searchResults.length }} course(s) found</span>
+        </div>
+        <button class="clear-search-btn" (click)="clearSearch()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Clear Search
+        </button>
       </div>
+      
+      <!-- Search Content with Filters -->
+      <div class="search-content-grid">
+        <!-- Filters for Search Results (Always show when in search mode) -->
+        <div class="search-filters-sidebar">
+          <app-sidebar-filters
+            (filtersChanged)="onSearchResultsFiltersChanged($event)"
+          ></app-sidebar-filters>
+        </div>
+        
+        <!-- Search Results Content -->
+        <div class="search-results-content">
+          <!-- Loading Indicator -->
+          <div class="search-loading" *ngIf="isSearching">
+            <div class="loading-spinner"></div>
+            <p>Searching courses...</p>
+          </div>
+          
+          <!-- Results Grid -->
+          <div class="search-results-grid" *ngIf="!isSearching && searchResults.length > 0">
+            <div class="courses-grid">
+              <app-course-card 
+                *ngFor="let course of searchResults" 
+                [course]="course"
+                (click)="onCourseClick(course)"
+              ></app-course-card>
+            </div>
+          </div>
+          
+          <!-- No Results Message -->
+          <div class="no-results" *ngIf="!isSearching && searchResults.length === 0">
+            <div class="no-results-content">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <h3>No courses found</h3>
+              <p>Try adjusting your search terms or browse our available courses below.</p>
+              <button class="browse-all-btn" (click)="clearSearch()">Browse All Courses</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      <!-- Main Content Column -->
-      <div class="main-content-column">
+    <!-- Regular Dashboard Content -->
+    <div class="content-grid" *ngIf="!isSearchMode">
+      <!-- Main Content Column (Full Width When No Search) -->
+      <div class="main-content-column full-width">
         <!-- Last Viewed Courses -->
         <section class="section">
           <div class="section-header">
@@ -217,24 +305,7 @@
           </div>
         </section>
 
-        <!-- Notifications -->
-        <section class="section">
-          <div class="section-header">
-            <h2>Notifications</h2>
-          </div>
-          <div class="notifications-list">
-            <div class="notification-item" *ngFor="let notification of notifications.slice(0, 4)">
-              <div class="notification-icon">
-                <div class="notification-dot" [class.promotional]="notification.isPromotional"></div>
-              </div>
-              <div class="notification-content">
-                <h4>{{ notification.title }}</h4>
-                <p>{{ notification.description }}</p>
-                <span class="notification-time">{{ notification.time }}</span>
-              </div>
-            </div>
-          </div>
-        </section>
+
       </div>
     </div>
   </main>

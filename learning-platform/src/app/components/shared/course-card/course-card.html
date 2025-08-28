@@ -1,6 +1,6 @@
 <div class="course-card" (click)="onCourseClick()">
   <div class="course-image">
-    <img [src]="course.thumbnailUrl" [alt]="course.title" />
+    <img [src]="course.thumbnailUrl" [alt]="course.title" (error)="onImageError($event)" />
     <div class="course-rating">
       <span class="rating-stars">★</span>
       <span class="rating-value">{{ course.rating }}</span>
@@ -15,7 +15,7 @@
     
     <div class="course-meta">
       <span class="course-duration">{{ course.duration }}</span>
-      <span class="course-students">{{ course.studentsCount }} Enrolled</span>
+      <span class="course-students">{{ course.studentsCount || course.enrollmentCount || 0 }} Enrolled</span>
     </div>
     
     <div class="course-tags">
@@ -23,15 +23,19 @@
     </div>
     
     <div class="course-footer">
-      <div class="course-price" *ngIf="course.price > 0">
+      <div class="course-price" *ngIf="course.price !== undefined && course.price > 0">
         <span class="current-price">${{ course.price }}</span>
-        <span class="original-price" *ngIf="course.originalPrice > course.price">${{ course.originalPrice }}</span>
+        <span class="original-price" *ngIf="course.originalPrice && course.originalPrice > course.price">${{ course.originalPrice }}</span>
       </div>
-      <div class="course-price" *ngIf="course.price === 0">
+      <div class="course-price" *ngIf="course.price !== undefined && course.price === 0">
         <span class="current-price">Free</span>
+      </div>
+      <div class="course-price" *ngIf="course.price === undefined">
+        <span class="current-price">Price not available</span>
       </div>
       
       <div class="course-provider">
+        <img [src]="course.provider.logoUrl" [alt]="course.provider.name" class="provider-logo" />
         <span>{{ course.provider.name }}</span>
       </div>
       

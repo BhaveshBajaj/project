@@ -5,19 +5,32 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CourseService } from '../../services/course';
 import { Course } from '../../models/course';
 
-interface CourseSection {
+interface CourseContentItem {
+  id: number;
+  title: string;
+  duration: string;
+  type: 'video' | 'text';
+  completed: boolean;
+}
+
+interface AdditionalSection {
   id: number;
   title: string;
   duration: string;
   expanded: boolean;
-  lessons: CourseLessson[];
 }
 
-interface CourseLessson {
+interface QuizQuestion {
   id: number;
-  title: string;
-  duration: string;
-  completed: boolean;
+  text: string;
+  options: QuizOption[];
+  explanation?: string;
+  correctAnswerIndex: number;
+}
+
+interface QuizOption {
+  text: string;
+  isCorrect: boolean;
 }
 
 interface Testimonial {
@@ -27,15 +40,6 @@ interface Testimonial {
   authorName: string;
   authorTitle: string;
   avatar: string;
-}
-
-interface RelatedCourse {
-  id: number;
-  title: string;
-  image: string;
-  rating: number;
-  students: number;
-  instructor: string;
 }
 
 @Component({
@@ -49,53 +53,125 @@ export class CourseDetailsComponent implements OnInit {
   course: Course | undefined;
   isLoading = true;
   error = false;
-  searchQuery = '';
   activeTab = 'overview';
-
-  courseSections: CourseSection[] = [
+  
+  // Video player properties
+  videoProgress = 35;
+  currentTime = '1:32';
+  totalTime = '4:30';
+  
+  // Content sidebar properties
+  activeContentIndex = 1;
+  
+  // Quiz properties
+  showQuizModal = false;
+  totalQuestions = 0;
+  questionAnswers: (number | null)[] = [];
+  questionFeedback: boolean[] = []; // Track which questions have been answered and feedback shown
+  showResults = false;
+  quizCompleted = false;
+  correctAnswers = 0;
+  
+  // Learning content
+  learningObjectives: string[] = [
+    'Learn how to become understanding of the position and processes used by a typical analyst when they analyze a business and develop a solution.',
+    'Understand how to clean and organize data for analysis and understand analysis and analytical data and analytical data.',
+    'Gain practical skills and experience.',
+    'Learn how to use Google Analytics.',
+  ];
+  
+  skillsTags: string[] = [
+    'Data Analytics',
+    'Data Visualization',
+    'SQL',
+    'Spreadsheets',
+    'Data Cleaning'
+  ];
+  
+  requirementsList: string[] = [
+    'No experience required. If you can use a web browser, you can get started on this path.',
+    'Familiarity with basic computer operations.'
+  ];
+  
+  courseDescription = 'Gain master Google Analytics and the data-to-decision-making, and start exploring the performance of your website. Learn the fundamentals of digital analytics and how to use Google Analytics to analyze the performance of your website and mobile apps to make data-driven decisions.';
+  
+  authorBio = 'Stephane is a solutions architect, consultant and software developer that has a particular interest in all things related to Cloud and Big Data. He\'s also a many-times best selling instructor on Udemy for his courses in AWS and Apache Kafka.';
+  
+  courseContentItems: CourseContentItem[] = [
+    { id: 1, title: '1. Course Overview', duration: '3min', type: 'video', completed: true },
+    { id: 2, title: '2. Google Analytics Overview', duration: '5min', type: 'video', completed: false },
+    { id: 3, title: '3. How to Set Up a Google Analytics Data Account', duration: '8min', type: 'text', completed: false },
+    { id: 4, title: '4. A Guide on Google Analytics 4 Setup', duration: '6min', type: 'video', completed: false },
+    { id: 5, title: '5. How To Setup Google Analytics Like A Pro', duration: '8min', type: 'video', completed: false },
+    { id: 6, title: '6. How To Analyze Reports & Increase Traffic And Sales', duration: '10min', type: 'text', completed: false },
+  ];
+  
+  additionalSections: AdditionalSection[] = [
+    { id: 1, title: 'Section 2: How to Analyze Reports & Increase Traffic And Sales', duration: '3min', expanded: false },
+    { id: 2, title: 'Section 3: Google Analytics Dictionary - The Top 20 Terms to Know', duration: '3min', expanded: false },
+    { id: 3, title: 'Section 4: Conclusion', duration: '3min', expanded: false },
+  ];
+  
+  quizQuestions: QuizQuestion[] = [
     {
       id: 1,
-      title: 'Introduction',
-      duration: '11 Lectures • 37 min',
-      expanded: false,
-      lessons: [
-        { id: 1, title: 'Course Overview', duration: '3 min', completed: true },
-        { id: 2, title: 'Google Analytics Overview', duration: '5 min', completed: true },
-        { id: 3, title: 'How to Set Up a Google Analytics Data Account', duration: '8 min', completed: false },
-      ]
+      text: 'In data analytics, what is a metric?',
+      options: [
+        { text: 'A way of measuring things', isCorrect: true },
+        { text: 'Data visualization', isCorrect: false },
+        { text: 'Data that can be counted or measured', isCorrect: false },
+        { text: 'Qualitative data', isCorrect: false }
+      ],
+      correctAnswerIndex: 0,
+      explanation: 'A metric is indeed a way of measuring things in data analytics.'
     },
     {
       id: 2,
-      title: 'Google Analytics Dictionary - The Top 20 Terms to Know',
-      duration: '8 Lectures • 24 min',
-      expanded: false,
-      lessons: [
-        { id: 4, title: 'A Guide on Google Analytics 4 Setup', duration: '6 min', completed: false },
-        { id: 5, title: 'How To Setup Google Analytics Like A Pro', duration: '8 min', completed: false },
-        { id: 6, title: 'How To Analyze Reports & Increase Traffic And Sales', duration: '10 min', completed: false },
-      ]
+      text: 'What are business rules in programming?',
+      options: [
+        { text: 'Rules that define how data should be processed', isCorrect: false },
+        { text: 'They help define the data', isCorrect: false },
+        { text: 'They help define the logic', isCorrect: true },
+        { text: 'They help define the relationships', isCorrect: false }
+      ],
+      correctAnswerIndex: 2,
+      explanation: 'Business rules help define the logic and constraints in programming applications.'
     },
     {
       id: 3,
-      title: 'How Google Analytics Tips And Tricks',
-      duration: '12 Lectures • 45 min',
-      expanded: false,
-      lessons: [
-        { id: 7, title: 'Advanced Analytics Techniques', duration: '12 min', completed: false },
-        { id: 8, title: 'Custom Reports and Dashboards', duration: '15 min', completed: false },
-        { id: 9, title: 'E-commerce Tracking', duration: '18 min', completed: false },
-      ]
+      text: 'Why are business rules important?',
+      options: [
+        { text: 'All of these reasons', isCorrect: true },
+        { text: 'They help define the logic', isCorrect: false },
+        { text: 'They help define the data', isCorrect: false },
+        { text: 'They help define the relationships', isCorrect: false }
+      ],
+      correctAnswerIndex: 0,
+      explanation: 'Business rules are important for all of these reasons - they help define logic, data, and relationships.'
     },
     {
       id: 4,
-      title: 'Conclusion',
-      duration: '3 Lectures • 12 min',
-      expanded: false,
-      lessons: [
-        { id: 10, title: 'Course Summary', duration: '4 min', completed: false },
-        { id: 11, title: 'Next Steps', duration: '4 min', completed: false },
-        { id: 12, title: 'Resources and Links', duration: '4 min', completed: false },
-      ]
+      text: 'What components does a Customer Type contain?',
+      options: [
+        { text: 'There is a business rule that defines what a Customer Type is', isCorrect: false },
+        { text: 'There is a business rule that defines how the data is set up', isCorrect: false },
+        { text: 'There is a business rule that defines how the data is set up', isCorrect: false },
+        { text: 'There is a business working Leads by number of quotes', isCorrect: true }
+      ],
+      correctAnswerIndex: 3,
+      explanation: 'The business working Leads by number of quotes is usually counted when a Customer is sub-set by type.'
+    },
+    {
+      id: 5,
+      text: 'Your audience filter has a column titled Customer Type. How does this most likely relate to your report in Business Objects?',
+      options: [
+        { text: 'There is a Business rule that defines what a Customer Type is', isCorrect: false },
+        { text: 'There is a business rule that defines how the data is set up', isCorrect: false },
+        { text: 'There is a business rule that defines how the data is set up', isCorrect: false },
+        { text: 'There is a business working Leads by number of quotes', isCorrect: true }
+      ],
+      correctAnswerIndex: 3,
+      explanation: 'The business working Leads by number of quotes is usually counted when a Customer is sub-set by type.'
     }
   ];
 
@@ -134,48 +210,7 @@ export class CourseDetailsComponent implements OnInit {
     }
   ];
 
-  relatedCourses: RelatedCourse[] = [
-    {
-      id: 1,
-      title: 'Python Beginner Freelance Android + Web Development',
-      image: 'https://i.imgur.com/3q6CqYq.png',
-      rating: 4.8,
-      students: 64503,
-      instructor: 'Python for Data Science, AI & Development'
-    },
-    {
-      id: 2,
-      title: 'Machine Learning A-Z: Python R in Data Science',
-      image: 'https://i.imgur.com/Y8L4En5.png',
-      rating: 4.5,
-      students: 45820,
-      instructor: 'Python for Data Science, AI & Development'
-    },
-    {
-      id: 3,
-      title: 'Go Full-Stack Course Complete Web Development Bootcamp',
-      image: 'https://i.imgur.com/nNn1y4J.png',
-      rating: 4.7,
-      students: 32614,
-      instructor: 'Python for Data Science, AI & Development'
-    },
-    {
-      id: 4,
-      title: 'Docker and DevOps Cloud Sourcing',
-      image: 'https://i.imgur.com/gK9fI5P.png',
-      rating: 4.6,
-      students: 28954,
-      instructor: 'Python for Data Science, AI & Development'
-    },
-    {
-      id: 5,
-      title: 'React - The Complete Guide 2024 (incl Hooks)',
-      image: 'https://i.imgur.com/3q6CqYq.png',
-      rating: 4.9,
-      students: 89654,
-      instructor: 'Modern React Development'
-    }
-  ];
+
 
   constructor(
     private courseService: CourseService,
@@ -215,51 +250,104 @@ export class CourseDetailsComponent implements OnInit {
   }
 
   toggleSection(sectionId: number): void {
-    const section = this.courseSections.find(s => s.id === sectionId);
+    const section = this.additionalSections.find(s => s.id === sectionId);
     if (section) {
       section.expanded = !section.expanded;
     }
   }
-
-  getTotalLessons(): number {
-    return this.courseSections.reduce((total, section) => total + section.lessons.length, 0);
+  
+  selectContentItem(index: number): void {
+    this.activeContentIndex = index;
+    // Here you would typically load the content for the selected item
+    console.log('Selected content item:', this.courseContentItems[index]);
   }
-
-  enrollInCourse(): void {
-    if (this.course) {
-      console.log('Enrolling in course:', this.course.title);
-      // Here you would typically call a service to enroll the user
-      alert('Successfully enrolled in the course!');
+  
+  playVideo(): void {
+    console.log('Playing video...');
+    // Here you would implement video playback logic
+  }
+  
+  startQuiz(): void {
+    this.showQuizModal = true;
+    this.totalQuestions = this.quizQuestions.length;
+    this.questionAnswers = new Array(this.totalQuestions).fill(null);
+    this.questionFeedback = new Array(this.totalQuestions).fill(false);
+    this.showResults = false;
+    this.quizCompleted = false;
+    this.correctAnswers = 0;
+  }
+  
+  closeQuiz(): void {
+    this.showQuizModal = false;
+    this.resetQuiz();
+  }
+  
+  onAnswerSelected(questionIndex: number, answerIndex: number): void {
+    this.questionAnswers[questionIndex] = answerIndex;
+  }
+  
+  submitAnswer(questionIndex: number): void {
+    if (this.questionAnswers[questionIndex] !== null) {
+      this.questionFeedback[questionIndex] = true;
+      console.log(`Submitted answer for question ${questionIndex + 1}`);
     }
   }
+  
+  getAllAnswered(): boolean {
+    return this.questionAnswers.every(answer => answer !== null);
+  }
+  
+  isQuestionAnswered(questionIndex: number): boolean {
+    return this.questionAnswers[questionIndex] !== null;
+  }
+  
+  hasQuestionFeedback(questionIndex: number): boolean {
+    return this.questionFeedback[questionIndex];
+  }
+  
+  isAnswerCorrect(questionIndex: number): boolean {
+    return this.questionAnswers[questionIndex] === this.quizQuestions[questionIndex].correctAnswerIndex;
+  }
+  
+  submitAllAnswers(): void {
+    this.showResults = true;
+    this.calculateScore();
+    
+    // Show results for a few seconds, then show completion screen
+    setTimeout(() => {
+      this.quizCompleted = true;
+    }, 3000);
+  }
+  
+  calculateScore(): void {
+    this.correctAnswers = 0;
+    this.questionAnswers.forEach((answer, index) => {
+      if (answer === this.quizQuestions[index].correctAnswerIndex) {
+        this.correctAnswers++;
+      }
+    });
+  }
+  
+  retakeQuiz(): void {
+    this.resetQuiz();
+    this.startQuiz();
+  }
+  
+  private resetQuiz(): void {
+    this.questionAnswers = [];
+    this.questionFeedback = [];
+    this.showResults = false;
+    this.quizCompleted = false;
+    this.correctAnswers = 0;
+  }
+
+
 
   goBack(): void {
     this.router.navigate(['/dashboard']);
   }
 
-  getRatingStars(rating: number): string[] {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
 
-    for (let i = 0; i < fullStars; i++) {
-      stars.push('★');
-    }
-    if (hasHalfStar) {
-      stars.push('☆');
-    }
-    while (stars.length < 5) {
-      stars.push('☆');
-    }
-    return stars;
-  }
-
-  formatReviewCount(count: number): string {
-    if (count >= 1000) {
-      return (count / 1000).toFixed(1) + 'K';
-    }
-    return count.toString();
-  }
 
   navigateHome(): void {
     this.router.navigate(['/dashboard']);

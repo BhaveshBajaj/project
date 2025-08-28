@@ -37,7 +37,7 @@
                 <span>{{ course.provider.name }}</span>
               </div>
               <div class="course-stats">
-                <span class="enrollment">{{ course.studentsCount | number }} enrolled</span>
+                <span class="enrollment">{{ (course.studentsCount || course.enrollmentCount || 0) | number }} enrolled</span>
                 <span class="duration">{{ course.duration }}</span>
               </div>
             </div>

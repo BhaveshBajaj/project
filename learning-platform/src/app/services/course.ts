@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { Course } from '../models/course';
+import { Observable, of, BehaviorSubject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { map, catchError } from 'rxjs/operators';
+import { Course, Curriculum, Quiz, CourseReviews, Banner } from '../models/course';
 import { Enrollment, UserEnrollments } from '../models/enrollment';
+import { AppData } from '../models/data';
 
 @Injectable({
   providedIn: 'root'
@@ -9,28 +12,81 @@ import { Enrollment, UserEnrollments } from '../models/enrollment';
 export class CourseService {
   private courses: Course[] = [];
   private enrollments: UserEnrollments[] = [];
+  private curriculum: Curriculum = {};
+  private quizzes: Quiz = {};
+  private reviews: CourseReviews = {};
+  private banners: Banner[] = [];
   private dataLoaded = false;
+  private coursesSubject = new BehaviorSubject<Course[]>([]);
+  public courses$ = this.coursesSubject.asObservable();
 
-  constructor() {
+  constructor(private http: HttpClient) {
     this.loadData();
   }
 
   private async loadData(): Promise<void> {
     try {
-      // First try to load from localStorage
-      const storedCourses = this.loadCoursesFromStorage();
-      if (storedCourses && storedCourses.length > 0) {
-        this.courses = storedCourses;
-      } else {
-        // Use mock data if no stored courses
-        this.courses = this.getMockCourses();
-      }
-      
-      this.enrollments = this.getMockEnrollments();
-      this.dataLoaded = true;
+      // Load from assets/data.json
+      this.http.get<AppData>('assets/data.json').subscribe({
+        next: (data) => {
+          this.courses = data.courses || [];
+          this.curriculum = data.curriculum || {};
+          this.quizzes = data.quizzes || {};
+          this.reviews = data.reviews || {};
+          this.banners = data.banners || [];
+          
+          // Transform user enrollments to match existing structure
+          this.enrollments = this.transformEnrollments(data.userEnrollments || {});
+          
+          console.log('Loaded data from assets/data.json:');
+          console.log('- Courses:', this.courses.length);
+          console.log('- Curriculum sections:', Object.keys(this.curriculum).length);
+          console.log('- Reviews:', Object.keys(this.reviews).length);
+          console.log('- Banners:', this.banners.length);
+          
+          this.coursesSubject.next(this.courses);
+          this.dataLoaded = true;
+        },
+        error: (error) => {
+          console.error('Failed to load data from assets/data.json:', error);
+          // Fallback to mock data
+          this.courses = this.getMockCourses();
+          this.enrollments = this.getMockEnrollments();
+          this.coursesSubject.next(this.courses);
+          this.dataLoaded = true;
+        }
+      });
     } catch (error) {
       console.error('Error loading course data:', error);
+      this.courses = this.getMockCourses();
+      this.enrollments = this.getMockEnrollments();
+      this.coursesSubject.next(this.courses);
+      this.dataLoaded = true;
     }
+  }
+
+  private transformEnrollments(userEnrollments: { [userId: string]: { courseId: number; progressPercent: number }[] }): UserEnrollments[] {
+    const result: UserEnrollments[] = [];
+    
+    Object.entries(userEnrollments).forEach(([userId, enrollments]) => {
+      const userEnrollmentData: UserEnrollments = {
+        userId: parseInt(userId),
+        enrollments: enrollments.map((enrollment, index) => ({
+          id: parseInt(userId) * 1000 + index,
+          userId: parseInt(userId),
+          courseId: enrollment.courseId,
+          enrollmentDate: new Date().toISOString().split('T')[0],
+          progress: enrollment.progressPercent,
+          status: enrollment.progressPercent === 100 ? 'completed' : enrollment.progressPercent > 0 ? 'in_progress' : 'enrolled',
+          completedLessons: [],
+          lastAccessDate: new Date().toISOString().split('T')[0],
+          certificateIssued: enrollment.progressPercent === 100
+        }))
+      };
+      result.push(userEnrollmentData);
+    });
+    
+    return result;
   }
 
   private getMockCourses(): Course[] {
@@ -204,7 +260,11 @@ export class CourseService {
   }
 
   getAllCourses(): Observable<Course[]> {
-    return of(this.courses);
+    if (this.dataLoaded) {
+      return of(this.courses);
+    } else {
+      return this.courses$;
+    }
   }
 
   getCourseById(id: number): Observable<Course | undefined> {
@@ -213,11 +273,26 @@ export class CourseService {
   }
 
   searchCourses(query: string): Observable<Course[]> {
+    // If data is not loaded yet, wait for it
+    if (!this.dataLoaded || this.courses.length === 0) {
+      return this.courses$.pipe(
+        map(courses => {
+          return courses.filter(course =>
+            course.title.toLowerCase().includes(query.toLowerCase()) ||
+            course.subtitle.toLowerCase().includes(query.toLowerCase()) ||
+            course.skills.some((skill: string) => skill.toLowerCase().includes(query.toLowerCase()))
+          );
+        })
+      );
+    }
+    
+    // Data is already loaded, search directly
     const filteredCourses = this.courses.filter(course =>
       course.title.toLowerCase().includes(query.toLowerCase()) ||
       course.subtitle.toLowerCase().includes(query.toLowerCase()) ||
       course.skills.some((skill: string) => skill.toLowerCase().includes(query.toLowerCase()))
     );
+    
     return of(filteredCourses);
   }
 
@@ -243,6 +318,7 @@ export class CourseService {
 
     if (filters.priceRange) {
       filtered = filtered.filter(course => 
+        course.price !== undefined && course.price !== null &&
         course.price >= filters.priceRange!.min && 
         course.price <= filters.priceRange!.max
       );
@@ -252,32 +328,23 @@ export class CourseService {
   }
 
   getLastViewedCourses(userId: number): Observable<Course[]> {
-    const userEnrollments = this.enrollments.find(e => e.userId === userId);
-    if (!userEnrollments) {
-      return of([]);
+    // Get user's enrolled courses and return the most recently accessed ones
+    const userEnrollment = this.enrollments.find(e => e.userId === userId);
+    if (userEnrollment && userEnrollment.enrollments.length > 0) {
+      const enrolledCourseIds = userEnrollment.enrollments.map(e => e.courseId);
+      const enrolledCourses = this.courses.filter(course => enrolledCourseIds.includes(course.id));
+      return of(enrolledCourses.slice(0, 4));
     }
-
-    const enrolledCourses = userEnrollments.enrollments.map((enrollment: Enrollment) =>
-      this.courses.find(course => course.id === enrollment.courseId)
-    ).filter((course: Course | undefined) => course !== undefined) as Course[];
-
-    // Sort by last access date and return the most recent ones
-    const sortedCourses = enrolledCourses
-      .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime())
-      .slice(0, 4);
-
-    return of(sortedCourses);
+    // Fallback to first 4 courses
+    return of(this.courses.slice(0, 4));
   }
 
   getNewlyLaunchedCourses(): Observable<Course[]> {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const newCourses = this.courses.filter(course =>
-      new Date(course.publishedDate) >= thirtyDaysAgo
-    ).slice(0, 6);
-
-    return of(newCourses);
+    // Sort by publishedDate and return the most recent courses
+    const sortedCourses = [...this.courses].sort((a, b) => 
+      new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
+    );
+    return of(sortedCourses.slice(0, 4));
   }
 
   enrollInCourse(userId: number, courseId: number): Observable<boolean> {
@@ -333,6 +400,39 @@ export class CourseService {
   private getNextCourseId(): number {
     const maxId = Math.max(...this.courses.map(course => course.id), 0);
     return maxId + 1;
+  }
+
+  // New methods for additional data
+  
+  getCurriculum(courseId: number): Observable<any[]> {
+    const courseCurriculum = this.curriculum[courseId.toString()] || [];
+    return of(courseCurriculum);
+  }
+
+  getQuizzes(courseId: number): Observable<any[]> {
+    const courseQuizzes = this.quizzes[courseId.toString()] || [];
+    return of(courseQuizzes);
+  }
+
+  getReviews(courseId: number): Observable<any[]> {
+    const courseReviews = this.reviews[courseId.toString()] || [];
+    return of(courseReviews);
+  }
+
+  getBanners(): Observable<Banner[]> {
+    const activeBanners = this.banners.filter(banner => banner.status === 'active');
+    return of(activeBanners);
+  }
+
+  getUserProgress(userId: number, courseId: number): Observable<number> {
+    const userEnrollment = this.enrollments.find(e => e.userId === userId);
+    if (userEnrollment) {
+      const enrollment = userEnrollment.enrollments.find(e => e.courseId === courseId);
+      if (enrollment) {
+        return of(enrollment.progress);
+      }
+    }
+    return of(0);
   }
 
   private loadCoursesFromStorage(): Course[] | null {

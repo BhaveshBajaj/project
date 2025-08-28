@@ -13,13 +13,15 @@ import { AuthService } from '../../../services/auth';
 })
 export class LoginComponent {
   loginData = {
-    email: 'nathan.william@deloitte.com',
-    password: 'password',
+    email: '',
+    password: '',
     rememberMe: false
   };
   
   isLoading = false;
   errorMessage = '';
+  successMessage = '';
+  imageLoadError = false;
 
   constructor(
     private authService: AuthService,
@@ -27,24 +29,69 @@ export class LoginComponent {
   ) {}
 
   onSubmit(): void {
+    if (!this.validateForm()) {
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     this.authService.login(this.loginData.email, this.loginData.password).subscribe({
       next: (success: boolean) => {
         this.isLoading = false;
         if (success) {
-          this.router.navigate(['/dashboard']);
+          this.successMessage = 'Login successful! Redirecting...';
+          setTimeout(() => {
+            this.router.navigate(['/dashboard']);
+          }, 1000);
         } else {
-          this.errorMessage = 'Invalid email or password';
+          this.errorMessage = 'Invalid email or password. Please check your credentials.';
         }
       },
       error: (error: any) => {
         this.isLoading = false;
-        this.errorMessage = 'An error occurred during login';
+        this.errorMessage = error.message || 'An error occurred during login. Please try again.';
         console.error('Login error:', error);
       }
     });
+  }
+
+  private validateForm(): boolean {
+    this.errorMessage = '';
+
+    if (!this.loginData.email) {
+      this.errorMessage = 'Email is required';
+      return false;
+    }
+
+    if (!this.isValidEmail(this.loginData.email)) {
+      this.errorMessage = 'Please enter a valid email address';
+      return false;
+    }
+
+    if (!this.loginData.password) {
+      this.errorMessage = 'Password is required';
+      return false;
+    }
+
+    if (this.loginData.password.length < 6) {
+      this.errorMessage = 'Password must be at least 6 characters long';
+      return false;
+    }
+
+    return true;
+  }
+
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  onImageError(event: any): void {
+    console.log('Image failed to load, showing fallback');
+    this.imageLoadError = true;
+    event.target.style.display = 'none';
   }
 
   goToSignup(): void {
