@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Blog } from '../../models/blog';
 import { BlogService } from '../../services/blog';
+import { AuthService } from '../../services/auth';
+import { User } from '../../models/user';
 
 @Component({
   selector: 'app-blog-edit',
@@ -35,13 +37,26 @@ export class BlogEditComponent implements OnInit {
     'Cloud Computing'
   ];
 
+  currentUser: User | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private blogService: BlogService
+    private blogService: BlogService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    // Check if user is logged in and has author role
+    this.authService.currentUser$.subscribe((user: User | null) => {
+      this.currentUser = user;
+      if (!user || (user.role !== 'Author' && user.role !== 'Admin')) {
+        alert('Only authors can edit blogs.');
+        this.router.navigate(['/dashboard']);
+        return;
+      }
+    });
+
     this.route.params.subscribe(params => {
       const blogId = Number(params['id']);
       if (blogId) {

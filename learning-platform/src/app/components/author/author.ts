@@ -5,6 +5,7 @@ import { CourseCardComponent } from '../shared/course-card/course-card';
 import { CourseService } from '../../services/course';
 import { UserService } from '../../services/user';
 import { AuthService } from '../../services/auth';
+import { PermissionsService } from '../../services/permissions';
 import { Course } from '../../models/course';
 import { User } from '../../models/user';
 
@@ -44,7 +45,8 @@ export class AuthorComponent implements OnInit {
     private router: Router,
     private courseService: CourseService,
     private userService: UserService,
-    private authService: AuthService
+    private authService: AuthService,
+    private permissionsService: PermissionsService
   ) {}
 
   ngOnInit(): void {
@@ -146,5 +148,13 @@ export class AuthorComponent implements OnInit {
 
   navigateToCreateCourse(): void {
     this.router.navigate(['/create-course']);
+  }
+
+  getRoleDisplayName(role: string): string {
+    return this.permissionsService.getRoleDisplayName(role);
+  }
+
+  getRoleColor(role: string): string {
+    return this.permissionsService.getRoleColor(role);
   }
 }

@@ -33,6 +33,9 @@
         
         <div class="author-details">
           <h1 class="author-name">{{ author.fullName }}</h1>
+          <div class="author-role-badge" [style.background-color]="getRoleColor(author.role)">
+            {{ getRoleDisplayName(author.role) }}
+          </div>
           <p class="author-title" *ngIf="author.track">{{ author.track }}</p>
           <div class="author-location" *ngIf="author.location">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

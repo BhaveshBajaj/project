@@ -484,7 +484,11 @@ export class DashboardComponent implements OnInit {
 
   navigateToMyProfile(): void {
     if (this.currentUser) {
-      this.router.navigate(['/author', this.currentUser.id]);
+      if (this.currentUser.role === 'Admin') {
+        this.router.navigate(['/admin-profile']);
+      } else {
+        this.router.navigate(['/author', this.currentUser.id]);
+      }
     }
   }
 

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { CourseService } from '../../services/course';
 import { AuthService } from '../../services/auth';
 import { CourseCreationQuizQuestion, CourseCreationQuizOption } from '../../models/course';
+import { User } from '../../models/user';
 
 interface Module {
   id: string;
@@ -89,6 +90,15 @@ export class CourseCreationComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    // Check if user is logged in and has admin role
+    this.authService.currentUser$.subscribe((user: User | null) => {
+      if (!user || (user.role !== 'Admin')) {
+        alert('Only administrators can create courses.');
+        this.router.navigate(['/dashboard']);
+        return;
+      }
+    });
+
     this.initializeForms();
     this.addDefaultModule();
     this.addDefaultQuizQuestion();

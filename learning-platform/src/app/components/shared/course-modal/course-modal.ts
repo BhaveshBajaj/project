@@ -1,17 +1,16 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { CourseCardComponent } from '../course-card/course-card';
 import { Course } from '../../../models/course';
 
 @Component({
   selector: 'app-course-modal',
   standalone: true,
-  imports: [CommonModule, CourseCardComponent],
+  imports: [CommonModule],
   templateUrl: './course-modal.html',
   styleUrl: './course-modal.scss'
 })
-export class CourseModalComponent implements OnInit {
+export class CourseModalComponent implements OnInit, OnDestroy {
   @Input() isOpen = false;
   @Input() title = 'All Courses';
   @Input() courses: Course[] = [];

@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Blog } from '../../models/blog';
 import { BlogService } from '../../services/blog';
+import { AuthService } from '../../services/auth';
+import { PermissionsService } from '../../services/permissions';
+import { User } from '../../models/user';
 
 @Component({
   selector: 'app-blog-detail',
@@ -14,14 +17,22 @@ import { BlogService } from '../../services/blog';
 export class BlogDetailComponent implements OnInit {
   blog: Blog | null = null;
   isLoading = true;
+  currentUser: User | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private blogService: BlogService
+    private blogService: BlogService,
+    private authService: AuthService,
+    private permissionsService: PermissionsService
   ) {}
 
   ngOnInit(): void {
+    // Get current user
+    this.authService.currentUser$.subscribe((user: User | null) => {
+      this.currentUser = user;
+    });
+
     this.route.params.subscribe(params => {
       const blogId = Number(params['id']);
       if (blogId) {
@@ -79,5 +90,10 @@ export class BlogDetailComponent implements OnInit {
     if (this.blog) {
       this.router.navigate(['/blog', this.blog.id, 'edit']);
     }
+  }
+
+  canEditBlog(): boolean {
+    if (!this.blog || !this.currentUser || !this.blog.authorId) return false;
+    return this.permissionsService.canEditBlog(this.blog.authorId);
   }
 }
