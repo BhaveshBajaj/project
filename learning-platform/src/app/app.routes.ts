@@ -6,6 +6,7 @@ import { CourseSearchComponent } from './components/course-search/course-search'
 import { CourseDetailsComponent } from './components/course-details/course-details';
 import { AuthorComponent } from './components/author/author';
 import { BlogDetailComponent } from './components/blog-detail/blog-detail';
+import { BlogEditComponent } from './components/blog-edit/blog-edit';
 import { CourseCreationComponent } from './components/course-creation/course-creation';
 import { AuthGuard } from './guards/auth.guard';
 
@@ -36,6 +37,11 @@ export const routes: Routes = [
   { 
     path: 'blog/:id', 
     component: BlogDetailComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'blog/:id/edit', 
+    component: BlogEditComponent, 
     canActivate: [AuthGuard] 
   },
   { 

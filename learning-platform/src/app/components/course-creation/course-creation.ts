@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router } from '@angular/router';
 import { CourseService } from '../../services/course';
 import { AuthService } from '../../services/auth';
+import { CourseCreationQuizQuestion, CourseCreationQuizOption } from '../../models/course';
 
 interface Module {
   id: string;
@@ -20,6 +21,8 @@ interface Lecture {
   videoUrl?: string;
   content?: string;
 }
+
+// Using the interfaces from the models
 
 @Component({
   selector: 'app-course-creation',
@@ -53,6 +56,9 @@ export class CourseCreationComponent implements OnInit {
   // Course content
   modules: Module[] = [];
   
+  // Quiz data
+  quizQuestions: CourseCreationQuizQuestion[] = [];
+  
   // Modal states
   showAddLectureModal = false;
   showPublishSuccessModal = false;
@@ -85,6 +91,7 @@ export class CourseCreationComponent implements OnInit {
   ngOnInit() {
     this.initializeForms();
     this.addDefaultModule();
+    this.addDefaultQuizQuestion();
   }
 
   initializeForms() {
@@ -144,6 +151,36 @@ export class CourseCreationComponent implements OnInit {
       ]
     };
     this.modules.push(defaultModule);
+  }
+
+  addDefaultQuizQuestion() {
+    const defaultQuestion: CourseCreationQuizQuestion = {
+      id: this.generateId(),
+      questionText: '',
+      options: [
+        {
+          id: this.generateId(),
+          text: '',
+          isCorrect: false
+        },
+        {
+          id: this.generateId(),
+          text: '',
+          isCorrect: false
+        },
+        {
+          id: this.generateId(),
+          text: '',
+          isCorrect: false
+        },
+        {
+          id: this.generateId(),
+          text: '',
+          isCorrect: false
+        }
+      ]
+    };
+    this.quizQuestions.push(defaultQuestion);
   }
 
   generateId(): string {
@@ -228,7 +265,36 @@ export class CourseCreationComponent implements OnInit {
         break;
       
       case 4:
-        // Quiz validation - optional for now
+        // Quiz validation
+        if (this.quizQuestions.length === 0) {
+          this.validationErrors.quiz = 'At least one quiz question is required';
+          isValid = false;
+        } else {
+          // Check if questions have text and at least one correct answer
+          for (let i = 0; i < this.quizQuestions.length; i++) {
+            const question = this.quizQuestions[i];
+            if (!question.questionText?.trim()) {
+              this.validationErrors[`question_${i}_text`] = `Question ${i + 1} text is required`;
+              isValid = false;
+            }
+            
+            // Check if question has at least one correct answer
+            const hasCorrectAnswer = question.options.some(option => option.isCorrect);
+            if (!hasCorrectAnswer) {
+              this.validationErrors[`question_${i}_correct`] = `Question ${i + 1} must have at least one correct answer`;
+              isValid = false;
+            }
+            
+            // Check if options have text
+            for (let j = 0; j < question.options.length; j++) {
+              const option = question.options[j];
+              if (!option.text?.trim()) {
+                this.validationErrors[`question_${i}_option_${j}`] = `Option ${j + 1} text is required`;
+                isValid = false;
+              }
+            }
+          }
+        }
         break;
     }
 
@@ -363,6 +429,7 @@ export class CourseCreationComponent implements OnInit {
       publishedDate: new Date().toISOString(),
       lastUpdated: new Date().toISOString(),
       modules: this.modules,
+      quizQuestions: this.quizQuestions,
       status: 'published',
       category: 'General',
       language: 'English',
@@ -452,5 +519,69 @@ export class CourseCreationComponent implements OnInit {
     const totalMinutes = count * 5; // Assuming 5 minutes per lecture for simplicity
     
     return `${count} Lectures · ${totalMinutes} mins`;
+  }
+
+  // Quiz management methods
+  addNewQuestion() {
+    const newQuestion: CourseCreationQuizQuestion = {
+      id: this.generateId(),
+      questionText: '',
+      options: [
+        {
+          id: this.generateId(),
+          text: '',
+          isCorrect: false
+        },
+        {
+          id: this.generateId(),
+          text: '',
+          isCorrect: false
+        },
+        {
+          id: this.generateId(),
+          text: '',
+          isCorrect: false
+        },
+        {
+          id: this.generateId(),
+          text: '',
+          isCorrect: false
+        }
+      ]
+    };
+    this.quizQuestions.push(newQuestion);
+  }
+
+  deleteQuestion(questionIndex: number) {
+    if (confirm('Are you sure you want to delete this question? This action cannot be undone.')) {
+      this.quizQuestions.splice(questionIndex, 1);
+    }
+  }
+
+  addOption(questionIndex: number) {
+    const newOption: CourseCreationQuizOption = {
+      id: this.generateId(),
+      text: '',
+      isCorrect: false
+    };
+    this.quizQuestions[questionIndex].options.push(newOption);
+  }
+
+  deleteOption(questionIndex: number, optionIndex: number) {
+    if (this.quizQuestions[questionIndex].options.length > 2) {
+      this.quizQuestions[questionIndex].options.splice(optionIndex, 1);
+    }
+  }
+
+  toggleCorrectAnswer(questionIndex: number, optionIndex: number) {
+    const question = this.quizQuestions[questionIndex];
+    const option = question.options[optionIndex];
+    
+    // Toggle the selected option
+    option.isCorrect = !option.isCorrect;
+  }
+
+  hasIncorrectOption(question: CourseCreationQuizQuestion): boolean {
+    return question.options.some(option => !option.isCorrect);
   }
 }

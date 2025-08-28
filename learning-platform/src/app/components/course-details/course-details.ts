@@ -22,7 +22,7 @@ interface AdditionalSection {
 
 interface QuizQuestion {
   id: number;
-  text: string;
+  questionText: string;
   options: QuizOption[];
   explanation?: string;
   correctAnswerIndex: number;
@@ -71,6 +71,7 @@ export class CourseDetailsComponent implements OnInit {
   showResults = false;
   quizCompleted = false;
   correctAnswers = 0;
+  hasQuizData = false; // Track if course has quiz questions
   
   // Learning content
   learningObjectives: string[] = [
@@ -112,68 +113,7 @@ export class CourseDetailsComponent implements OnInit {
     { id: 3, title: 'Section 4: Conclusion', duration: '3min', expanded: false },
   ];
   
-  quizQuestions: QuizQuestion[] = [
-    {
-      id: 1,
-      text: 'In data analytics, what is a metric?',
-      options: [
-        { text: 'A way of measuring things', isCorrect: true },
-        { text: 'Data visualization', isCorrect: false },
-        { text: 'Data that can be counted or measured', isCorrect: false },
-        { text: 'Qualitative data', isCorrect: false }
-      ],
-      correctAnswerIndex: 0,
-      explanation: 'A metric is indeed a way of measuring things in data analytics.'
-    },
-    {
-      id: 2,
-      text: 'What are business rules in programming?',
-      options: [
-        { text: 'Rules that define how data should be processed', isCorrect: false },
-        { text: 'They help define the data', isCorrect: false },
-        { text: 'They help define the logic', isCorrect: true },
-        { text: 'They help define the relationships', isCorrect: false }
-      ],
-      correctAnswerIndex: 2,
-      explanation: 'Business rules help define the logic and constraints in programming applications.'
-    },
-    {
-      id: 3,
-      text: 'Why are business rules important?',
-      options: [
-        { text: 'All of these reasons', isCorrect: true },
-        { text: 'They help define the logic', isCorrect: false },
-        { text: 'They help define the data', isCorrect: false },
-        { text: 'They help define the relationships', isCorrect: false }
-      ],
-      correctAnswerIndex: 0,
-      explanation: 'Business rules are important for all of these reasons - they help define logic, data, and relationships.'
-    },
-    {
-      id: 4,
-      text: 'What components does a Customer Type contain?',
-      options: [
-        { text: 'There is a business rule that defines what a Customer Type is', isCorrect: false },
-        { text: 'There is a business rule that defines how the data is set up', isCorrect: false },
-        { text: 'There is a business rule that defines how the data is set up', isCorrect: false },
-        { text: 'There is a business working Leads by number of quotes', isCorrect: true }
-      ],
-      correctAnswerIndex: 3,
-      explanation: 'The business working Leads by number of quotes is usually counted when a Customer is sub-set by type.'
-    },
-    {
-      id: 5,
-      text: 'Your audience filter has a column titled Customer Type. How does this most likely relate to your report in Business Objects?',
-      options: [
-        { text: 'There is a Business rule that defines what a Customer Type is', isCorrect: false },
-        { text: 'There is a business rule that defines how the data is set up', isCorrect: false },
-        { text: 'There is a business rule that defines how the data is set up', isCorrect: false },
-        { text: 'There is a business working Leads by number of quotes', isCorrect: true }
-      ],
-      correctAnswerIndex: 3,
-      explanation: 'The business working Leads by number of quotes is usually counted when a Customer is sub-set by type.'
-    }
-  ];
+  quizQuestions: QuizQuestion[] = [];
 
   testimonials: Testimonial[] = [
     {
@@ -235,12 +175,48 @@ export class CourseDetailsComponent implements OnInit {
         this.isLoading = false;
         if (!course) {
           this.error = true;
+        } else {
+          // Load quiz questions for this course
+          this.loadQuizQuestions(courseId);
         }
       },
       error: (error: any) => {
         console.error('Error loading course:', error);
         this.error = true;
         this.isLoading = false;
+      }
+    });
+  }
+
+  private loadQuizQuestions(courseId: number): void {
+    console.log('🔍 Loading quiz questions for course ID:', courseId);
+    
+    this.courseService.getQuizzes(courseId).subscribe({
+      next: (quizData: any[]) => {
+        console.log('📊 Raw quiz data received:', quizData);
+        
+        // Transform the quiz data from data.json format to component format
+        this.quizQuestions = quizData.map((question: any) => ({
+          id: question.id,
+          questionText: question.questionText,
+          options: question.options,
+          correctAnswerIndex: question.options.findIndex((option: any) => option.isCorrect),
+          explanation: question.explanation || 'Well done! You got it right.'
+        }));
+        
+        // Update hasQuizData flag
+        this.hasQuizData = this.quizQuestions.length > 0;
+        
+        console.log('✅ Transformed quiz questions:', this.quizQuestions);
+        console.log('🎯 Has quiz data:', this.hasQuizData);
+        console.log('📝 Quiz questions length:', this.quizQuestions.length);
+      },
+      error: (error: any) => {
+        console.error('❌ Error loading quiz questions:', error);
+        // Fallback to empty array if no quiz data is found
+        this.quizQuestions = [];
+        this.hasQuizData = false;
+        console.log('⚠️ Set hasQuizData to false due to error');
       }
     });
   }
@@ -268,6 +244,8 @@ export class CourseDetailsComponent implements OnInit {
   }
   
   startQuiz(): void {
+    // This method should only be called when hasQuizData is true
+    // since the button is conditionally shown
     this.showQuizModal = true;
     this.totalQuestions = this.quizQuestions.length;
     this.questionAnswers = new Array(this.totalQuestions).fill(null);

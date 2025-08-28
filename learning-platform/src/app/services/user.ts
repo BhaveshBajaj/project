@@ -30,8 +30,8 @@ export class UserService {
         this.usersSubject.next(this.users);
         console.log('Loaded users from cache:', this.users.length);
       } else {
-        // Load from assets/data.json initially
-        this.http.get<AppData>('assets/data.json').subscribe({
+        // Load from data.json initially
+        this.http.get<AppData>('data.json').subscribe({
           next: (data) => {
             this.users = data.users || [];
             this.userEnrollments = data.userEnrollments || {};
@@ -41,10 +41,10 @@ export class UserService {
             localStorage.setItem('userEnrollmentsCache', JSON.stringify(this.userEnrollments));
             
             this.usersSubject.next(this.users);
-            console.log('Loaded users from assets/data.json:', this.users.length);
+            console.log('Loaded users from data.json:', this.users.length);
           },
           error: (error) => {
-            console.error('Failed to load users from assets/data.json:', error);
+            console.error('Failed to load users from data.json:', error);
             this.users = this.getMockUsers();
             this.usersSubject.next(this.users);
           }

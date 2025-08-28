@@ -613,11 +613,228 @@
   }
 }
 
-.quiz-placeholder {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 1.1rem;
+// Quiz Styles
+.quiz-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.quiz-question-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+  
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid #333;
+    
+    .question-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #007AFF;
+      color: white;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    .question-required {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10B981;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    
+    .delete-question-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 6px;
+      transition: all 0.2s;
+      
+      &:hover {
+        color: #EF4444;
+        background: rgba(239, 68, 68, 0.1);
+      }
+    }
+  }
+  
+  .question-content {
+    padding: 1.5rem;
+    
+    .question-input {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: white;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 60px;
+      
+      &::placeholder {
+        color: #888;
+      }
+      
+      &:focus {
+        outline: none;
+        border-color: #007AFF;
+        box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+      }
+      
+      &.error {
+        border-color: #EF4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      }
+    }
+  }
+}
+
+.options-container {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.option-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  
+  .option-indicator {
+    margin-top: 0.25rem;
+    
+    .option-circle {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #1a1a1a;
+      
+      &:hover {
+        border-color: #007AFF;
+      }
+      
+      &.correct {
+        background: #10B981;
+        border-color: #10B981;
+        color: white;
+      }
+      
+      &.incorrect {
+        background: #EF4444;
+        border-color: #EF4444;
+        color: white;
+      }
+    }
+  }
+  
+  .option-content {
+    flex: 1;
+    
+    .option-input {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: white;
+      font-size: 1rem;
+      
+      &::placeholder {
+        color: #888;
+      }
+      
+      &:focus {
+        outline: none;
+        border-color: #007AFF;
+        box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+      }
+      
+      &.error {
+        border-color: #EF4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      }
+    }
+  }
+  
+  .delete-option-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+    margin-top: 0.25rem;
+    
+    &:hover {
+      color: #EF4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+  }
+}
+
+.add-option-btn {
+  background: none;
+  border: none;
+  color: #10B981;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+  padding: 0.5rem 0;
+  text-align: left;
+  
+  &:hover {
+    color: #059669;
+    text-decoration: underline;
+  }
+}
+
+.add-question-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #1a1a1a;
+  border: 2px dashed #333;
+  border-radius: 12px;
+  padding: 1.5rem;
+  color: #888;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(0, 122, 255, 0.05);
+    border-color: #007AFF;
+    color: white;
+  }
+  
+  svg {
+    opacity: 0.8;
+  }
 }
 
 // Modal Styles

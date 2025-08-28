@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, BehaviorSubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Blog } from '../models/blog';
 import { AppData } from '../models/data';
@@ -10,6 +10,8 @@ import { AppData } from '../models/data';
 export class BlogService {
   private blogs: Blog[] = [];
   private dataLoaded = false;
+  private blogsSubject = new BehaviorSubject<Blog[]>([]);
+  public blogs$ = this.blogsSubject.asObservable();
 
   constructor(private http: HttpClient) {
     this.loadData();
@@ -17,24 +19,27 @@ export class BlogService {
 
   private async loadData(): Promise<void> {
     try {
-      // Load from assets/data.json
-      this.http.get<AppData>('assets/data.json').subscribe({
+      // Load from data.json
+      this.http.get<AppData>('data.json').subscribe({
         next: (data) => {
           // Generate blog data based on courses and users
           this.blogs = this.generateBlogsFromData(data);
           console.log('Generated blogs from data:', this.blogs.length);
           this.dataLoaded = true;
+          this.blogsSubject.next(this.blogs);
         },
         error: (error) => {
           console.error('Failed to load data for blogs:', error);
           this.blogs = this.getMockBlogs();
           this.dataLoaded = true;
+          this.blogsSubject.next(this.blogs);
         }
       });
     } catch (error) {
       console.error('Error loading blog data:', error);
       this.blogs = this.getMockBlogs();
       this.dataLoaded = true;
+      this.blogsSubject.next(this.blogs);
     }
   }
 
@@ -197,7 +202,7 @@ export class BlogService {
   }
 
   getAllBlogs(): Observable<Blog[]> {
-    return of(this.blogs);
+    return this.blogs$;
   }
 
   getBlogById(id: number): Observable<Blog | undefined> {
@@ -230,5 +235,69 @@ export class BlogService {
     // Return blogs with highest views
     const sorted = [...this.blogs].sort((a, b) => (b.views || 0) - (a.views || 0));
     return of(sorted.slice(0, limit));
+  }
+
+  updateBlog(updatedBlog: Blog): Observable<Blog> {
+    return new Observable(observer => {
+      try {
+        // Find and update the blog in the local array
+        const index = this.blogs.findIndex(blog => blog.id === updatedBlog.id);
+        if (index !== -1) {
+          this.blogs[index] = { ...updatedBlog };
+          
+          // Update the BehaviorSubject to notify subscribers
+          this.blogsSubject.next(this.blogs);
+          
+          // Save updated blogs to data.json
+          this.saveUpdatedDataToFile();
+          
+          observer.next(updatedBlog);
+          observer.complete();
+        } else {
+          observer.error(new Error('Blog not found'));
+        }
+      } catch (error) {
+        observer.error(error);
+      }
+    });
+  }
+
+  private saveUpdatedDataToFile(): void {
+    try {
+      // Save to localStorage for persistence across sessions
+      localStorage.setItem('updated_blogs', JSON.stringify(this.blogs));
+      
+      // In a real application with a backend, you would make an HTTP POST request:
+      // this.http.post('/api/blogs/save', { blogs: this.blogs }).subscribe(...)
+      
+      // For now, we'll also update the public data.json file by copying the data
+      this.updatePublicDataJson();
+      
+      console.log('Blog data saved successfully. Updated blogs:', this.blogs);
+    } catch (error) {
+      console.error('Error saving data:', error);
+    }
+  }
+
+  private updatePublicDataJson(): void {
+    // Load current data.json and update it
+    this.http.get<AppData>('data.json').subscribe({
+      next: (currentData) => {
+        // Create updated data structure with blogs
+        const updatedData = {
+          ...currentData,
+          blogs: this.blogs
+        };
+        
+        // In a real application, this would be sent to a backend API
+        // For demonstration, we'll save to localStorage with a special key
+        localStorage.setItem('updated_data_json', JSON.stringify(updatedData, null, 2));
+        
+        console.log('Data structure updated. In production, this would update data.json file:', updatedData);
+      },
+      error: (error) => {
+        console.error('Error loading current data for update:', error);
+      }
+    });
   }
 }

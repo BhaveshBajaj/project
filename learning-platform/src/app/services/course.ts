@@ -26,9 +26,12 @@ export class CourseService {
 
   private async loadData(): Promise<void> {
     try {
-      // Load from assets/data.json
-      this.http.get<AppData>('assets/data.json').subscribe({
+      // Load from data.json with cache busting
+      const timestamp = new Date().getTime();
+      this.http.get<AppData>(`data.json?v=${timestamp}`).subscribe({
         next: (data) => {
+          console.log('🔄 Raw data received from data.json:', data);
+          
           this.courses = data.courses || [];
           this.curriculum = data.curriculum || {};
           this.quizzes = data.quizzes || {};
@@ -38,17 +41,27 @@ export class CourseService {
           // Transform user enrollments to match existing structure
           this.enrollments = this.transformEnrollments(data.userEnrollments || {});
           
-          console.log('Loaded data from assets/data.json:');
+          console.log('✅ Loaded data from data.json:');
           console.log('- Courses:', this.courses.length);
           console.log('- Curriculum sections:', Object.keys(this.curriculum).length);
+          console.log('- Quiz sections:', Object.keys(this.quizzes).length);
+          console.log('- Quizzes raw data:', data.quizzes);
           console.log('- Reviews:', Object.keys(this.reviews).length);
           console.log('- Banners:', this.banners.length);
+          
+          // Verify quiz data is properly loaded
+          if (data.quizzes) {
+            console.log('🎯 Quiz data verification:');
+            Object.keys(data.quizzes).forEach(courseId => {
+              console.log(`  - Course ${courseId}: ${data.quizzes[courseId].length} questions`);
+            });
+          }
           
           this.coursesSubject.next(this.courses);
           this.dataLoaded = true;
         },
         error: (error) => {
-          console.error('Failed to load data from assets/data.json:', error);
+          console.error('❌ Failed to load data from data.json:', error);
           // Fallback to mock data
           this.courses = this.getMockCourses();
           this.enrollments = this.getMockEnrollments();
@@ -57,7 +70,7 @@ export class CourseService {
         }
       });
     } catch (error) {
-      console.error('Error loading course data:', error);
+      console.error('❌ Error loading course data:', error);
       this.courses = this.getMockCourses();
       this.enrollments = this.getMockEnrollments();
       this.coursesSubject.next(this.courses);
@@ -366,18 +379,19 @@ export class CourseService {
   }
 
   createCourse(courseData: any): Observable<Course> {
+    const newCourseId = this.getNextCourseId();
+    
     // Create a new course with the next available ID
     const newCourse: Course = {
       ...courseData,
-      id: this.getNextCourseId(),
+      id: newCourseId,
       isNewlyLaunched: true,
       isBestseller: false,
       hasCaption: false,
       hasCertificate: true,
       provider: {
-        name: courseData.authorName,
-        url: "",
-        logo: courseData.authorAvatar
+        name: courseData.authorName || "Custom Provider",
+        logoUrl: courseData.authorAvatar || ""
       },
       category: courseData.category || "General",
       subCategory: "Custom",
@@ -385,16 +399,80 @@ export class CourseService {
       requirements: courseData.requirements ? [courseData.requirements] : [],
       targetAudience: ["Students", "Professionals"],
       syllabus: courseData.modules || [],
-      features: ["Certificate of completion", "Lifetime access", "Mobile access"]
+      features: ["Certificate of completion", "Lifetime access", "Mobile access"],
+      reviewCount: 0,
+      enrollmentCount: 0,
+      durationText: courseData.duration
     };
 
     // Add to courses array
     this.courses.push(newCourse);
     
-    // Store in localStorage to persist
-    localStorage.setItem('courses', JSON.stringify(this.courses));
+    // Handle quiz data - convert to the data.json format
+    if (courseData.quizQuestions && courseData.quizQuestions.length > 0) {
+      const formattedQuizzes = courseData.quizQuestions.map((question: any, index: number) => ({
+        id: parseInt(newCourseId.toString() + (index + 1).toString().padStart(3, '0')),
+        questionText: question.questionText,
+        options: question.options.map((option: any) => ({
+          text: option.text,
+          isCorrect: option.isCorrect
+        }))
+      }));
+      
+      // Store quiz data
+      this.quizzes[newCourseId.toString()] = formattedQuizzes;
+    }
+
+    // Handle curriculum data - convert modules to curriculum format
+    if (courseData.modules && courseData.modules.length > 0) {
+      const formattedCurriculum = courseData.modules.map((module: any, moduleIndex: number) => ({
+        id: parseInt(newCourseId.toString() + (moduleIndex + 1).toString().padStart(2, '0')),
+        title: module.title,
+        lectures: module.lectures.map((lecture: any, lectureIndex: number) => ({
+          id: parseInt(newCourseId.toString() + (moduleIndex + 1).toString().padStart(2, '0') + (lectureIndex + 1).toString().padStart(2, '0')),
+          title: lecture.title,
+          type: lecture.type === 'video' ? 'Video' : lecture.type === 'text' ? 'Text' : 'PDF',
+          durationMinutes: 5, // Default duration
+          content: {
+            htmlContent: lecture.type === 'text' ? lecture.content || lecture.description : undefined,
+            videoUrl: lecture.type === 'video' ? lecture.videoUrl : undefined,
+            fileUrl: lecture.type === 'pdf' ? lecture.content : undefined
+          }
+        }))
+      }));
+      
+      // Store curriculum data
+      this.curriculum[newCourseId.toString()] = formattedCurriculum;
+    }
+    
+    // Update the data structure for persistence
+    this.updateDataStructure();
+    
+    // Emit updated courses
+    this.coursesSubject.next(this.courses);
     
     return of(newCourse);
+  }
+
+  private updateDataStructure(): void {
+    // Create complete data structure
+    const completeData = {
+      courses: this.courses,
+      curriculum: this.curriculum,
+      quizzes: this.quizzes,
+      reviews: this.reviews,
+      banners: this.banners,
+      userEnrollments: {}
+    };
+    
+    // Store in localStorage to persist changes
+    localStorage.setItem('appData', JSON.stringify(completeData));
+    
+    console.log('Course data updated and saved:', {
+      coursesCount: this.courses.length,
+      curriculumSections: Object.keys(this.curriculum).length,
+      quizSections: Object.keys(this.quizzes).length
+    });
   }
 
   private getNextCourseId(): number {
@@ -410,7 +488,24 @@ export class CourseService {
   }
 
   getQuizzes(courseId: number): Observable<any[]> {
+    console.log('🔧 CourseService.getQuizzes called for course:', courseId);
+    console.log('📚 Data loaded status:', this.dataLoaded);
+    console.log('🗂️ Available quiz keys:', Object.keys(this.quizzes));
+    
+    if (!this.dataLoaded) {
+      console.log('⏳ Data not loaded yet, waiting for courses$ stream...');
+      // Wait for data to load
+      return this.courses$.pipe(
+        map(() => {
+          const courseQuizzes = this.quizzes[courseId.toString()] || [];
+          console.log('📋 Quiz data after waiting for load:', courseQuizzes);
+          return courseQuizzes;
+        })
+      );
+    }
+    
     const courseQuizzes = this.quizzes[courseId.toString()] || [];
+    console.log('📋 Quiz data for course', courseId, ':', courseQuizzes);
     return of(courseQuizzes);
   }
 

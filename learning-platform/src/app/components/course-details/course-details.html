@@ -147,7 +147,7 @@
       </div>
 
       <!-- Quick Quiz Section -->
-      <div class="quick-quiz-section">
+      <div class="quick-quiz-section" *ngIf="hasQuizData">
         <h3>Quick Quiz</h3>
         <p class="quiz-description">Test your understanding with a short quiz which helps deepen your knowledge.</p>
         <button class="start-quiz-btn" (click)="startQuiz()">Start Quiz</button>
@@ -246,7 +246,7 @@
             </div>
             
             <div class="question-content">
-              <p class="question-text">{{ question.text }}</p>
+              <p class="question-text">{{ question.questionText }}</p>
               
               <div class="quiz-options">
                 <label class="quiz-option" 

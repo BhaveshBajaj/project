@@ -322,6 +322,76 @@
                     }
                 ]
             }
+        ],
+        "102": [
+            {
+                "id": 501,
+                "questionText": "What is Python primarily used for?",
+                "options": [
+                    {
+                        "text": "Web development",
+                        "isCorrect": false
+                    },
+                    {
+                        "text": "Data science and AI",
+                        "isCorrect": false
+                    },
+                    {
+                        "text": "All of the above",
+                        "isCorrect": true
+                    },
+                    {
+                        "text": "Mobile app development",
+                        "isCorrect": false
+                    }
+                ]
+            },
+            {
+                "id": 502,
+                "questionText": "Which of the following is a Python web framework?",
+                "options": [
+                    {
+                        "text": "Django",
+                        "isCorrect": true
+                    },
+                    {
+                        "text": "React",
+                        "isCorrect": false
+                    },
+                    {
+                        "text": "Angular",
+                        "isCorrect": false
+                    },
+                    {
+                        "text": "Vue.js",
+                        "isCorrect": false
+                    }
+                ]
+            }
+        ],
+        "103": [
+            {
+                "id": 601,
+                "questionText": "What does 'Big Data' refer to?",
+                "options": [
+                    {
+                        "text": "Large datasets that require special tools to process",
+                        "isCorrect": true
+                    },
+                    {
+                        "text": "Any data stored in the cloud",
+                        "isCorrect": false
+                    },
+                    {
+                        "text": "Data that is expensive to store",
+                        "isCorrect": false
+                    },
+                    {
+                        "text": "Data that takes up more than 1GB",
+                        "isCorrect": false
+                    }
+                ]
+            }
         ]
     },
     "reviews": {

@@ -54,6 +54,9 @@ export interface Course {
   videoContent?: VideoContent;
   quizzes?: CourseQuiz[];
   learningPath?: LearningPathItem[];
+  
+  // Quiz questions for course creation
+  quizQuestions?: QuizQuestion[];
 }
 
 // New interfaces for the JSON data structure
@@ -138,6 +141,19 @@ export interface QuizQuestion {
   options: QuizOption[];
   correctAnswerIndex?: number;
   explanation?: string;
+}
+
+// Interface for course creation quiz questions
+export interface CourseCreationQuizQuestion {
+  id: string;
+  questionText: string;
+  options: CourseCreationQuizOption[];
+}
+
+export interface CourseCreationQuizOption {
+  id: string;
+  text: string;
+  isCorrect: boolean;
 }
 
 export interface QuizOption {

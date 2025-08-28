@@ -74,4 +74,10 @@ export class BlogDetailComponent implements OnInit {
       this.blog.likes = (this.blog.likes || 0) + 1;
     }
   }
+
+  onEditBlog(): void {
+    if (this.blog) {
+      this.router.navigate(['/blog', this.blog.id, 'edit']);
+    }
+  }
 }
