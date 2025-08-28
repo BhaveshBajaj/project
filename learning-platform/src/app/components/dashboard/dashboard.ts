@@ -535,4 +535,9 @@ export class DashboardComponent implements OnInit {
   private updateUnreadNotificationsCount(): void {
     this.unreadNotificationsCount = this.notifications.filter(n => !n.isRead).length;
   }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 }
